@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on ven 04 mag 2018 18:48:31 CEST by SUMO gui Version 0.29.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumo-gui.exeConfiguration.xsd">
+
+    <input>
+        <net-file value="pedcrossing.net.xml"/>
+        <route-files value="pedcrossing.rou.xml"/>
+        <additional-files value="pedcrossing.tll.xml,pedcrossing.lad.xml"/>
+    </input>
+
+    <report>
+        <verbose value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+    <traci_server>
+        <remote-port value="53827"/>
+    </traci_server>
+
+    <random_number>
+        <random value="false"/>
+        <seed value="0"/>
+    </random_number>
+
+    <gui_only>
+        <gui-settings-file value="viewsettings.xml"/>
+    </gui_only>
+
+</configuration>
+-->
+
+

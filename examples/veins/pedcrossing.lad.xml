@@ -1,25 +1,10 @@
 <additionals>
-   <laneAreaDetector id="EC_0" lane="EC_0" pos="0.00" length="88.55"
-   freq="1" file="/home/alessandro/DemoWork/LaneDetector/veins/examples/veins/results/laneAreaDetectorOutputFiles/laneAreaDetector-EC_0"/>  
-
-   <laneAreaDetector id="EC_1" lane="EC_1" pos="0.00" length="88.55"
-   freq="1" file="/home/alessandro/DemoWork/LaneDetector/veins/examples/veins/results/laneAreaDetectorOutputFiles/laneAreaDetector-EC_1"/>  
-
-   <laneAreaDetector id="NC_0" lane="NC_0" pos="0.00" length="40.25"
-   freq="1" file="/home/alessandro/DemoWork/LaneDetector/veins/examples/veins/results/laneAreaDetectorOutputFiles/laneAreaDetector-NC_0"/>
-   
-   <laneAreaDetector id="NC_1" lane="NC_1" pos="0.00" length="40.25"
-   freq="1" file="/home/alessandro/DemoWork/LaneDetector/veins/examples/veins/results/laneAreaDetectorOutputFiles/laneAreaDetector-NC_1"/>  
-
-   <laneAreaDetector id="WC_0" lane="WC_0" pos="0.00" length="90.25"
-   freq="1" file="/home/alessandro/DemoWork/LaneDetector/veins/examples/veins/results/laneAreaDetectorOutputFiles/laneAreaDetector-WC_0"/>  
-
-   <laneAreaDetector id="WC_1" lane="WC_1" pos="0.00" length="90.25"
-   freq="1" file="/home/alessandro/DemoWork/LaneDetector/veins/examples/veins/results/laneAreaDetectorOutputFiles/laneAreaDetector-WC_1"/> 
-
-   <laneAreaDetector id="SC_0" lane="SC_0" pos="0.00" length="40.25"
-   freq="1" file="/home/alessandro/DemoWork/LaneDetector/veins/examples/veins/results/laneAreaDetectorOutputFiles/laneAreaDetector-SC_0"/>
-
-   <laneAreaDetector id="SC_1" lane="SC_1" pos="0.00" length="40.25"
-   freq="1" file="/home/alessandro/DemoWork/LaneDetector/veins/examples/veins/results/laneAreaDetectorOutputFiles/laneAreaDetector-SC_1"/> 
+   <laneAreaDetector id="EC_0" lane="EC_0" pos="0.00" length="88.55" freq="1" file="laneAreaDetector-EC_0"/>  
+   <laneAreaDetector id="EC_1" lane="EC_1" pos="0.00" length="88.55" freq="1" file="laneAreaDetector-EC_1"/>  
+   <laneAreaDetector id="NC_0" lane="NC_0" pos="0.00" length="40.25" freq="1" file="laneAreaDetector-NC_0"/>
+   <laneAreaDetector id="NC_1" lane="NC_1" pos="0.00" length="40.25" freq="1" file="laneAreaDetector-NC_1"/>  
+   <laneAreaDetector id="WC_0" lane="WC_0" pos="0.00" length="90.25" freq="1" file="laneAreaDetector-WC_0"/>  
+   <laneAreaDetector id="WC_1" lane="WC_1" pos="0.00" length="90.25" freq="1" file="laneAreaDetector-WC_1"/> 
+   <laneAreaDetector id="SC_0" lane="SC_0" pos="0.00" length="40.25" freq="1" file="laneAreaDetector-SC_0"/>
+   <laneAreaDetector id="SC_1" lane="SC_1" pos="0.00" length="40.25" freq="1" file="laneAreaDetector-SC_1"/> 
 </additionals>
