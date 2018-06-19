@@ -27,9 +27,28 @@
  * Small RSU Demo using 11p
  */
 class TraCIDemoRSU11p : public BaseWaveApplLayer {
+    private:
+        cMessage* sendTimerEvt;
+        cMessage* checkTrafficEvt;
+	public:
+		virtual void initialize(int stage);
 	protected:
+		int currentSubscribedServiceId=-1;
 		virtual void onWSM(WaveShortMessage* wsm);
 		virtual void onWSA(WaveServiceAdvertisment* wsa);
+		virtual void handleSelfMsg(cMessage* msg);
+		virtual void handleOptimalTraffic(TraCICommandInterface*);  //method for applying optimal control algorithm
+		virtual void handleVerCongestion(TraCICommandInterface*);     //method to handle vertical traffic congestion controlled at each simTime
+		virtual void handleHorCongestion(TraCICommandInterface*);     //method to handle horizontal traffic congestion controlled at each simTime
+		virtual void computePerformanceMetric(double, double);
+
+		int g[3] = {41, 78, 4};   //find a better way to query SUMO via TraCI for knowing the duration of the green
+		int horTrafficHist=0;
+		int verTrafficHist=0;
+		int bufHor=0;
+		int bufVer=0;
+		std::string programUsed = "0";
+		double perf;
 };
 
 #endif

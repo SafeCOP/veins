@@ -55,7 +55,7 @@ network Scenario
             parameters:
                 @display("p=512,128");
         }
-        
+
     connections allowunconnected:
 }
 

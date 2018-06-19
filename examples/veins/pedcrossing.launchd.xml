@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!-- debug config -->
+<launch>
+	<copy file="pedcrossing.con.xml" />
+	<copy file="pedcrossing.edg.xml" />
+	<copy file="pedcrossing.net.xml" />
+	<copy file="pedcrossing.nod.xml" />
+	<copy file="pedcrossing.rou.xml" />
+	<copy file="pedcrossing.tll.xml" /> 
+	<copy file="pedcrossing.lad.xml" />
+	<copy file="viewsettings.xml" />
+	
+	<copy file="ped.py" type="config2"/>	
+	<copy file="run.sumocfg" type="config" />
+</launch>
+
+

@@ -366,7 +366,7 @@ void TraCIScenarioManager::handleSelfMsg(cMessage *msg) {
 			if (vehicleTypeIds.size()==0) {
 				std::list<std::string> vehTypes = getCommandInterface()->getVehicleTypeIds();
 				for (std::list<std::string>::const_iterator i = vehTypes.begin(); i != vehTypes.end(); ++i) {
-					if (i->compare("DEFAULT_VEHTYPE")!=0) {
+					if (i->compare("DEFAULT_VEHTYPE")!=0 || i->compare("DEFAULT_PEDTYPE")!=0) {
 						MYDEBUG << *i << std::endl;
 						vehicleTypeIds.push_back(*i);
 					}

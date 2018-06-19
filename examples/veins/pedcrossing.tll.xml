@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Fri 14 Apr 2017 05:53:44 PM CEST by Netedit Version 0.29.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netedit.exeConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="pedcrossing.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="pedcrossing.net.xml"/>
+        <plain-output-prefix value="/mnt/pietro/Programmi/veins*/example/veins/pedcrossing"/>
+    </output>
+
+    <processing>
+        <no-internal-links value="false"/>
+        <no-turnarounds value="true"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="false"/>
+        <junctions.corner-detail value="0"/>
+    </processing>
+
+    <visualisation>
+        <registry-viewport value="true"/>
+    </visualisation>
+
+</configuration>
+-->
+
+<tlLogics version="0.27" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tllogic_file.xsd">
+    <!--tlLogic id="C" type="static" programID="3" offset="0">
+        <phase duration="10000" state="ooooo"/>
+    </tlLogic>
+	<tlLogic id="C" type="static" programID="1" offset="0">
+		<phase duration="78" state="ggrrggrr"/>
+        	<phase duration="4" state="yyrryyrr"/>
+        	<phase duration="4" state="rrggrrgg"/>
+        	<phase duration="4" state="rryyrryy"/>
+	</tlLogic>
+	<tlLogic id="C" type="static" programID="2" offset="0">
+		<phase duration="4" state="ggrrggrr"/>
+        	<phase duration="4" state="yyrryyrr"/>
+        	<phase duration="78" state="rrggrrgg"/>
+        	<phase duration="4" state="rryyrryy"/>
+	</tlLogic>-->
+    
+</tlLogics>

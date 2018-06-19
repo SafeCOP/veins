@@ -88,7 +88,7 @@ void TraCIScenarioManagerLaunchd::init_traci() {
 		}
 	}
 
-	std::string contents = launchConfig->tostr(0);
+	std::string contents = launchConfig->str(); // tostr(0);
 
 	TraCIBuffer buf;
 	buf << std::string("sumo-launchd.launch.xml") << contents;

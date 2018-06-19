@@ -115,6 +115,7 @@ class TraCICommandInterface
 
 				void setProgram(std::string program);
 				void setPhaseIndex(int32_t index);
+				int getPhaseIndex();
 
 			protected:
 				TraCICommandInterface* traci;
@@ -124,6 +125,25 @@ class TraCICommandInterface
 		Trafficlight trafficlight(std::string trafficLightId) {
 			return Trafficlight(this, trafficLightId);
 		}
+
+		// LaneAreaDetector methods
+		std::list<std::string> getLaneAreaDetectorIds();
+        	class LaneAreaDetector {
+	            	public:
+	    	            	LaneAreaDetector(TraCICommandInterface* traci, std::string laneAreaDetectorId) : traci(traci), laneAreaDetectorId(laneAreaDetectorId) {
+	                    connection = &traci->connection;
+	      	          	}
+
+        	        	int getLastStepVehicleNumber();
+
+            		protected:
+                		TraCICommandInterface* traci;
+                		TraCIConnection* connection;
+                		std::string laneAreaDetectorId;
+        	};
+        	LaneAreaDetector laneAreaDetector(std::string laneAreaDetectorId) {
+            		return LaneAreaDetector(this, laneAreaDetectorId);
+        	}
 
 		// Polygon methods
 		std::list<std::string> getPolygonIds();

@@ -146,6 +146,7 @@ class BaseWaveApplLayer : public BaseApplLayer {
         TraCIMobility* mobility;
         TraCICommandInterface* traci;
         TraCICommandInterface::Vehicle* traciVehicle;
+        TraCICommandInterface::Trafficlight* traciTrafficlight;
 
         AnnotationManager* annotations;
         WaveAppToMac1609_4Interface* mac;
