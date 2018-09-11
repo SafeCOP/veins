@@ -11,7 +11,7 @@
 
     <output>
         <output-file value="data/../pedcrossing.net.xml"/>
-        <plain-output-prefix value="/mnt/pietro/Documenti/Poli/Progetto%20di%20Ingegneria%20Informatica/traci_pedestrian_crossing/data/pedcrossing"/>
+        <plain-output-prefix value="/tmp/safecop/data/pedcrossing"/>
     </output>
 
     <processing>

@@ -11,7 +11,7 @@
 
     <output>
         <output-file value="pedcrossing.net.xml"/>
-        <plain-output-prefix value="/mnt/pietro/Programmi/veins*/example/veins/pedcrossing"/>
+        <plain-output-prefix value="/tmp/safecop/data/pedcrossing"/>
     </output>
 
     <processing>
