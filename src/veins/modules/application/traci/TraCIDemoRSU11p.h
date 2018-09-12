@@ -48,7 +48,6 @@ class TraCIDemoRSU11p : public BaseWaveApplLayer {
 		int bufHor=0;
 		int bufVer=0;
 		std::string programUsed = "0";
-		double perf;
 };
 
 #endif
