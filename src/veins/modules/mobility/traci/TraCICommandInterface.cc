@@ -206,6 +206,9 @@ void TraCICommandInterface::Trafficlight::setProgram(std::string program) {
 	TraCIBuffer buf = connection->query(CMD_SET_TL_VARIABLE, TraCIBuffer() << static_cast<uint8_t>(TL_PROGRAM) << trafficLightId << static_cast<uint8_t>(TYPE_STRING) << program);
 	ASSERT(buf.eof());
 }
+std::string TraCICommandInterface::Trafficlight::getProgram() {
+	return traci->genericGetString(CMD_GET_TL_VARIABLE, trafficLightId, TL_CURRENT_PROGRAM, RESPONSE_GET_TL_VARIABLE);
+}
 
 void TraCICommandInterface::Trafficlight::setPhaseIndex(int32_t index) {
 	TraCIBuffer buf = connection->query(CMD_SET_TL_VARIABLE, TraCIBuffer() << static_cast<uint8_t>(TL_PHASE_INDEX) << trafficLightId << static_cast<uint8_t>(TYPE_INTEGER) << index);

@@ -114,6 +114,7 @@ class TraCICommandInterface
 				}
 
 				void setProgram(std::string program);
+				std::string getProgram();
 				void setPhaseIndex(int32_t index);
 				int getPhaseIndex();
 
