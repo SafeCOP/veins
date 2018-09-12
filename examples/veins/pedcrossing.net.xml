@@ -1,24 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Tue May  8 15:10:15 2018 by SUMO netconvert Version 0.29.0
-<?xml version="1.0" encoding="UTF-8"?>
-
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
-
-    <input>
-        <node-files value="pedcrossing.nod.xml"/>
-        <edge-files value="pedcrossing.edg.xml"/>
-        <connection-files value="pedcrossing.con.xml"/>
-        <tllogic-files value="pedcrossing.tll.xml"/>
-    </input>
-
-    <output>
-        <output-file value="pedcrossing.net.xml"/>
-    </output>
-
-</configuration>
--->
-
 <net version="0.27" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
 
     <location netOffset="100.00,50.00" convBoundary="0.00,0.00,200.00,100.00" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
