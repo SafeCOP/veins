@@ -21,33 +21,40 @@
 #ifndef TraCIDemoRSU11p_H
 #define TraCIDemoRSU11p_H
 
+#include <set>
+
 #include "veins/modules/application/ieee80211p/BaseWaveApplLayer.h"
+
+// find a better way to query SUMO via TraCI for knowing the number of programs
+// and the duration of the green for each program
 
 /**
  * Small RSU Demo using 11p
  */
 class TraCIDemoRSU11p : public BaseWaveApplLayer {
-    private:
-        cMessage* sendTimerEvt;
-        cMessage* checkTrafficEvt;
-	public:
-		virtual void initialize(int stage);
-	protected:
-		int currentSubscribedServiceId=-1;
-		virtual void onWSM(WaveShortMessage* wsm);
-		virtual void onWSA(WaveServiceAdvertisment* wsa);
-		virtual void handleSelfMsg(cMessage* msg);
-		virtual void handleOptimalTraffic(TraCICommandInterface*);  //method for applying optimal control algorithm
-		virtual void handleVerCongestion(TraCICommandInterface*);     //method to handle vertical traffic congestion controlled at each simTime
-		virtual void handleHorCongestion(TraCICommandInterface*);     //method to handle horizontal traffic congestion controlled at each simTime
-		virtual void computePerformanceMetric(double, double);
+private:
+  cMessage *sendTimerEvt = nullptr;
+  cMessage *checkTrafficEvt = nullptr;
+  cMessage *initialEvt = nullptr;
+  Veins::TraCIScenarioManager *manager = nullptr;
 
-		int g[3] = {41, 78, 4};   //find a better way to query SUMO via TraCI for knowing the duration of the green
-		int horTrafficHist=0;
-		int verTrafficHist=0;
-		int bufHor=0;
-		int bufVer=0;
-		std::string programUsed = "0";
+public:
+  virtual void initialize(int stage) override;
+  virtual void finish() override;
+
+protected:
+  virtual void handleSelfMsg(cMessage *msg);
+  // method for applying optimal control algorithm
+  void setOptimalProgram(TraCICommandInterface::Trafficlight &TL);
+  void setOptimalProgram(TraCICommandInterface::Trafficlight &&TL) {
+    setOptimalProgram(TL);
+  }
+  void computeTrafficFlows(TraCICommandInterface *traci);
+
+  std::set<std::string> PrevHorVehicles = {};
+  std::set<std::string> PrevVerVehicles = {};
+  int HorInputFlow = 0;
+  int VerInputFlow = 0;
 };
 
 #endif

@@ -21,8 +21,8 @@
 #ifndef __VEINS_MYVEINSAPP_H_
 #define __VEINS_MYVEINSAPP_H_
 
-#include <omnetpp.h>
 #include "veins/modules/application/ieee80211p/BaseWaveApplLayer.h"
+#include <omnetpp.h>
 
 using namespace omnetpp;
 
@@ -37,16 +37,17 @@ using namespace omnetpp;
  */
 
 class MyVeinsApp : public BaseWaveApplLayer {
-    public:
-        virtual void initialize(int stage);
-        virtual void finish();
-    protected:
-        virtual void onBSM(BasicSafetyMessage* bsm);
-        virtual void onWSM(WaveShortMessage* wsm);
-        virtual void onWSA(WaveServiceAdvertisment* wsa);
+public:
+  virtual void initialize(int stage);
+  virtual void finish();
 
-        virtual void handleSelfMsg(cMessage* msg);
-        virtual void handlePositionUpdate(cObject* obj);
-    };
+protected:
+  virtual void onBSM(BasicSafetyMessage *bsm);
+  virtual void onWSM(WaveShortMessage *wsm);
+  virtual void onWSA(WaveServiceAdvertisment *wsa);
+
+  virtual void handleSelfMsg(cMessage *msg);
+  virtual void handlePositionUpdate(cObject *obj);
+};
 
 #endif

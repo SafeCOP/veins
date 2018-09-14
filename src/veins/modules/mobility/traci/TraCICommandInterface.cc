@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "veins/modules/mobility/traci/TraCIBuffer.h"
@@ -203,24 +204,114 @@ void TraCICommandInterface::Vehicle::stopAt(std::string roadId, double pos, uint
 }
 
 void TraCICommandInterface::Trafficlight::setProgram(std::string program) {
-	TraCIBuffer buf = connection->query(CMD_SET_TL_VARIABLE, TraCIBuffer() << static_cast<uint8_t>(TL_PROGRAM) << trafficLightId << static_cast<uint8_t>(TYPE_STRING) << program);
-	ASSERT(buf.eof());
+  TraCIBuffer buf
+    = connection->query(CMD_SET_TL_VARIABLE,
+                        TraCIBuffer()
+                          << static_cast<uint8_t>(TL_PROGRAM)
+                          << trafficLightId
+                          << static_cast<uint8_t>(TYPE_STRING)
+                          << program);
+  ASSERT(buf.eof());
 }
-std::string TraCICommandInterface::Trafficlight::getProgram() {
-	return traci->genericGetString(CMD_GET_TL_VARIABLE, trafficLightId, TL_CURRENT_PROGRAM, RESPONSE_GET_TL_VARIABLE);
+
+using TL = TraCICommandInterface::Trafficlight;
+
+void TL::addCompleteProgram(const std::string &ProgramName,
+                            const std::vector<TL::Phase> &Phases,
+                            const unsigned int PhaseIndex) {
+
+  TraCIBuffer Query = {};
+  assert(PhaseIndex < Phases.size());
+
+  Query << static_cast<uint8_t>(TL_COMPLETE_PROGRAM_RYG)
+        << trafficLightId
+        << static_cast<uint8_t>(TYPE_COMPOUND)
+        << 1
+        << static_cast<uint8_t>(TYPE_STRING)
+        << ProgramName
+        << static_cast<uint8_t>(TYPE_INTEGER)
+        << 0
+        << static_cast<uint8_t>(TYPE_COMPOUND)
+        << 0
+        << static_cast<uint8_t>(TYPE_INTEGER)
+        << PhaseIndex
+        << static_cast<uint8_t>(TYPE_INTEGER)
+        << static_cast<int>(Phases.size());
+
+  for (const TL::Phase &P : Phases)
+    Query << static_cast<uint8_t>(TYPE_INTEGER)
+          << (P.Duration * 1000)
+          << static_cast<uint8_t>(TYPE_INTEGER)
+          << 0
+          << static_cast<uint8_t>(TYPE_INTEGER)
+          << 0
+          << static_cast<uint8_t>(TYPE_STRING)
+          << P.LightTuple;
+        
+  TraCIBuffer buf = connection->query(CMD_SET_TL_VARIABLE, Query);
+  ASSERT(buf.eof());
+}
+
+std::string TraCICommandInterface::Trafficlight::getCurrentProgram() const {
+  return traci->genericGetString(CMD_GET_TL_VARIABLE,
+                                 trafficLightId,
+                                 TL_CURRENT_PROGRAM,
+                                 RESPONSE_GET_TL_VARIABLE);
 }
 
 void TraCICommandInterface::Trafficlight::setPhaseIndex(int32_t index) {
-	TraCIBuffer buf = connection->query(CMD_SET_TL_VARIABLE, TraCIBuffer() << static_cast<uint8_t>(TL_PHASE_INDEX) << trafficLightId << static_cast<uint8_t>(TYPE_INTEGER) << index);
+  TraCIBuffer buf
+    = connection->query(CMD_SET_TL_VARIABLE,
+                        TraCIBuffer()
+                          << static_cast<uint8_t>(TL_PHASE_INDEX)
+                          << trafficLightId
+                          << static_cast<uint8_t>(TYPE_INTEGER)
+                          << index);
 	ASSERT(buf.eof());
 }
 
-int TraCICommandInterface::Trafficlight::getPhaseIndex() {
-    return traci->genericGetInt(CMD_GET_TL_VARIABLE, trafficLightId, TL_CURRENT_PHASE, RESPONSE_GET_TL_VARIABLE);
+int TraCICommandInterface::Trafficlight::getPhaseIndex() const {
+  return traci->genericGetInt(CMD_GET_TL_VARIABLE,
+                              trafficLightId,
+                              TL_CURRENT_PHASE,
+                              RESPONSE_GET_TL_VARIABLE);
 }
 
-std::list<std::string> TraCICommandInterface::getPolygonIds() {
-	return genericGetStringList(CMD_GET_POLYGON_VARIABLE, "", ID_LIST, RESPONSE_GET_POLYGON_VARIABLE);
+void TraCICommandInterface::Trafficlight::setPhaseLeftDuration(int D) {
+  TraCIBuffer buf
+    = connection->query(CMD_SET_TL_VARIABLE,
+                        TraCIBuffer()
+                          << static_cast<uint8_t>(TL_PHASE_DURATION)
+                          << trafficLightId
+                          << static_cast<uint8_t>(TYPE_INTEGER)
+                          << D * 1000);
+  ASSERT(buf.eof());
+}
+
+int TraCICommandInterface::Trafficlight::getCurrPhaseDuration() const {
+  return traci->genericGetInt(CMD_GET_TL_VARIABLE,
+                              trafficLightId,
+                              TL_PHASE_DURATION,
+                              RESPONSE_GET_TL_VARIABLE) / 1000;
+}
+
+int TraCICommandInterface::Trafficlight::getNextSwitchSecs() const {
+  return traci->genericGetInt(CMD_GET_TL_VARIABLE,
+                              trafficLightId,
+                              TL_NEXT_SWITCH,
+                              RESPONSE_GET_TL_VARIABLE) / 1000;
+}
+
+
+int TraCICommandInterface::getCurrentTimeSecs() const {
+  return genericGetInt(CMD_GET_SIM_VARIABLE,
+                       "",
+                       VAR_TIME_STEP,
+                       RESPONSE_GET_SIM_VARIABLE) / 1000;
+}
+
+std::set<std::string> TraCICommandInterface::getPolygonIds() {
+	return genericGetStringSet(CMD_GET_POLYGON_VARIABLE, "", ID_LIST, RESPONSE_GET_POLYGON_VARIABLE);
 }
 
 std::string TraCICommandInterface::Polygon::getTypeId() {
@@ -297,8 +388,8 @@ void TraCICommandInterface::Poi::remove(int32_t layer) {
 	ASSERT(buf.eof());
 }
 
-std::list<std::string> TraCICommandInterface::getLaneIds() {
-	return genericGetStringList(CMD_GET_LANE_VARIABLE, "", ID_LIST, RESPONSE_GET_LANE_VARIABLE);
+std::set<std::string> TraCICommandInterface::getLaneIds() {
+	return genericGetStringSet(CMD_GET_LANE_VARIABLE, "", ID_LIST, RESPONSE_GET_LANE_VARIABLE);
 }
 
 std::list<Coord> TraCICommandInterface::Lane::getShape() {
@@ -321,16 +412,30 @@ double TraCICommandInterface::Lane::getMeanSpeed() {
 	return traci->genericGetDouble(CMD_GET_LANE_VARIABLE, laneId, LAST_STEP_MEAN_SPEED, RESPONSE_GET_LANE_VARIABLE);
 }
 
-std::list<std::string> TraCICommandInterface::getLaneAreaDetectorIds() {
-    return genericGetStringList(CMD_GET_LANEAREA_VARIABLE, "", ID_LIST, RESPONSE_GET_LANEAREA_VARIABLE);
+std::set<std::string> TraCICommandInterface::getLaneAreaDetectorIds() {
+  return genericGetStringSet(CMD_GET_LANEAREA_VARIABLE, "", ID_LIST, RESPONSE_GET_LANEAREA_VARIABLE);
 }
 
-int TraCICommandInterface::LaneAreaDetector::getLastStepVehicleNumber() {
-    return traci->genericGetInt(CMD_GET_LANEAREA_VARIABLE, laneAreaDetectorId, LAST_STEP_VEHICLE_NUMBER, RESPONSE_GET_LANEAREA_VARIABLE);
+int TraCICommandInterface::LaneAreaDetector::getLastStepVehicleNumber() const {
+  return traci->genericGetInt(CMD_GET_LANEAREA_VARIABLE,
+                              laneAreaDetectorId,
+                              LAST_STEP_VEHICLE_NUMBER,
+                              RESPONSE_GET_LANEAREA_VARIABLE);
 }
 
-std::list<std::string> TraCICommandInterface::getJunctionIds() {
-	return genericGetStringList(CMD_GET_JUNCTION_VARIABLE, "", ID_LIST, RESPONSE_GET_JUNCTION_VARIABLE);
+std::set<std::string>
+TraCICommandInterface::LaneAreaDetector::getLastStepVehicleIDs() const {
+  return traci->genericGetStringSet(CMD_GET_LANEAREA_VARIABLE,
+                                    laneAreaDetectorId,
+                                    LAST_STEP_VEHICLE_ID_LIST,
+                                    RESPONSE_GET_LANEAREA_VARIABLE);
+}
+
+std::set<std::string> TraCICommandInterface::getJunctionIds() {
+  return genericGetStringSet(CMD_GET_JUNCTION_VARIABLE,
+                             "",
+                             ID_LIST,
+                             RESPONSE_GET_JUNCTION_VARIABLE);
 }
 
 Coord TraCICommandInterface::Junction::getPosition() {
@@ -515,7 +620,7 @@ double TraCICommandInterface::genericGetDouble(uint8_t commandId, std::string ob
 	return res;
 }
 
-int32_t TraCICommandInterface::genericGetInt(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) {
+int32_t TraCICommandInterface::genericGetInt(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) const {
 
 	uint8_t resultTypeId = TYPE_INTEGER;
 	int32_t res;
@@ -542,7 +647,7 @@ int32_t TraCICommandInterface::genericGetInt(uint8_t commandId, std::string obje
 	return res;
 }
 
-std::list<std::string> TraCICommandInterface::genericGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) {
+std::list<std::string> TraCICommandInterface::genericGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) const {
 
 	uint8_t resultTypeId = TYPE_STRINGLIST;
 	std::list<std::string> res;
@@ -566,6 +671,37 @@ std::list<std::string> TraCICommandInterface::genericGetStringList(uint8_t comma
 	for (uint32_t i = 0; i < count; i++) {
 		std::string id; buf >> id;
 		res.push_back(id);
+	}
+
+	ASSERT(buf.eof());
+
+	return res;
+}
+
+std::set<std::string> TraCICommandInterface::genericGetStringSet(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) const {
+
+	uint8_t resultTypeId = TYPE_STRINGLIST;
+	std::set<std::string> res;
+
+	TraCIBuffer buf = connection.query(commandId, TraCIBuffer() << variableId << objectId);
+
+	uint8_t cmdLength; buf >> cmdLength;
+	if (cmdLength == 0) {
+		uint32_t cmdLengthX;
+		buf >> cmdLengthX;
+	}
+	uint8_t commandId_r; buf >> commandId_r;
+	ASSERT(commandId_r == responseId);
+	uint8_t varId; buf >> varId;
+	ASSERT(varId == variableId);
+	std::string objectId_r; buf >> objectId_r;
+	ASSERT(objectId_r == objectId);
+	uint8_t resType_r; buf >> resType_r;
+	ASSERT(resType_r == resultTypeId);
+	uint32_t count; buf >> count;
+	for (uint32_t i = 0; i < count; i++) {
+		std::string id; buf >> id;
+		res.insert(id);
 	}
 
 	ASSERT(buf.eof());

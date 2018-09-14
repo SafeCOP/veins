@@ -84,7 +84,7 @@ class TraCICommandInterface
 		}
 
 		// Lane methods
-		std::list<std::string> getLaneIds();
+		std::set<std::string> getLaneIds();
 		class Lane {
 			public:
 				Lane(TraCICommandInterface* traci, std::string laneId) : traci(traci), laneId(laneId) {
@@ -109,45 +109,65 @@ class TraCICommandInterface
 		// Trafficlight methods
 		class Trafficlight {
 			public:
-				Trafficlight(TraCICommandInterface* traci, std::string trafficLightId) : traci(traci), trafficLightId(trafficLightId) {
-					connection = &traci->connection;
-				}
-
+				Trafficlight(TraCICommandInterface* traci, std::string trafficLightId) :
+                                  traci(traci),
+                                  connection(&traci->connection),
+                                  trafficLightId(trafficLightId)
+                                {} 
+                                struct Phase {
+                                  Phase(int D, const std::string &S) : Duration(D), LightTuple(S) {}
+                                  int Duration;
+                                  std::string LightTuple;
+                                };
 				void setProgram(std::string program);
-				std::string getProgram();
+                                void addCompleteProgram(const std::string &ProgramName,
+                                                        const std::vector<Phase> &Phases,
+                                                        const unsigned int PhaseIndex);
+				std::string getCurrentProgram() const;
 				void setPhaseIndex(int32_t index);
-				int getPhaseIndex();
+				int getPhaseIndex() const;
+				int getCurrPhaseDuration() const;
+                                void setPhaseLeftDuration(int D);
+                                int getNextSwitchSecs() const;
+                                bool hasTraCI() const { return traci != nullptr; }
+                                bool hasConnection() const { return connection != nullptr; }
 
 			protected:
 				TraCICommandInterface* traci;
 				TraCIConnection* connection;
 				std::string trafficLightId;
 		};
+
 		Trafficlight trafficlight(std::string trafficLightId) {
 			return Trafficlight(this, trafficLightId);
 		}
 
+
 		// LaneAreaDetector methods
-		std::list<std::string> getLaneAreaDetectorIds();
+		std::set<std::string> getLaneAreaDetectorIds();
         	class LaneAreaDetector {
 	            	public:
-	    	            	LaneAreaDetector(TraCICommandInterface* traci, std::string laneAreaDetectorId) : traci(traci), laneAreaDetectorId(laneAreaDetectorId) {
-	                    connection = &traci->connection;
+	    	            	LaneAreaDetector(const TraCICommandInterface* traci, std::string laneAreaDetectorId) : traci(traci), laneAreaDetectorId(laneAreaDetectorId) {
+	                          connection = &traci->connection;
 	      	          	}
 
-        	        	int getLastStepVehicleNumber();
+        	        	int getLastStepVehicleNumber() const;
+        	        	std::set<std::string> getLastStepVehicleIDs() const;
 
             		protected:
-                		TraCICommandInterface* traci;
+                		const TraCICommandInterface* traci;
                 		TraCIConnection* connection;
                 		std::string laneAreaDetectorId;
         	};
-        	LaneAreaDetector laneAreaDetector(std::string laneAreaDetectorId) {
+        	LaneAreaDetector laneAreaDetector(std::string laneAreaDetectorId) const {
             		return LaneAreaDetector(this, laneAreaDetectorId);
         	}
 
+                // Time methods
+                int getCurrentTimeSecs() const;
+
 		// Polygon methods
-		std::list<std::string> getPolygonIds();
+		std::set<std::string> getPolygonIds();
 		void addPolygon(std::string polyId, std::string polyType, const TraCIColor& color, bool filled, int32_t layer, const std::list<Coord>& points);
 		class Polygon {
 			public:
@@ -189,7 +209,7 @@ class TraCICommandInterface
 		}
 
 		// Junction methods
-		std::list<std::string> getJunctionIds();
+		std::set<std::string> getJunctionIds();
 		class Junction {
 			public:
 				Junction(TraCICommandInterface* traci, std::string junctionId) : traci(traci), junctionId(junctionId) {
@@ -257,8 +277,9 @@ class TraCICommandInterface
 		std::string genericGetString(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
 		Coord genericGetCoord(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
 		double genericGetDouble(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
-		int32_t genericGetInt(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
-		std::list<std::string> genericGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
+		int32_t genericGetInt(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) const;
+		std::list<std::string> genericGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) const;
+                std::set<std::string> genericGetStringSet(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId) const;
 		std::list<Coord> genericGetCoordList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
 };
 

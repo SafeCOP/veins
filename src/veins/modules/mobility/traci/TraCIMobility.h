@@ -118,15 +118,20 @@ class TraCIMobility : public BaseMobility
 			return angle;
 		}
 		virtual TraCIScenarioManager* getManager() const {
-			if (!manager) manager = TraCIScenarioManagerAccess().get();
+			if (manager == nullptr)
+                          manager = TraCIScenarioManagerAccess().get();
+                        assert(manager != nullptr);
 			return manager;
 		}
 		virtual TraCICommandInterface* getCommandInterface() const {
-			if (!commandInterface) commandInterface = getManager()->getCommandInterface();
+			if (commandInterface == nullptr)
+                          commandInterface = getManager()->getCommandInterface();
+                        assert(commandInterface != nullptr);
 			return commandInterface;
 		}
 		virtual TraCICommandInterface::Vehicle* getVehicleCommandInterface() const {
-			if (!vehicleCommandInterface) vehicleCommandInterface = new TraCICommandInterface::Vehicle(getCommandInterface()->vehicle(getExternalId()));
+			if (vehicleCommandInterface == nullptr)
+                          vehicleCommandInterface = new TraCICommandInterface::Vehicle(getCommandInterface()->vehicle(getExternalId()));
 			return vehicleCommandInterface;
 		}
 

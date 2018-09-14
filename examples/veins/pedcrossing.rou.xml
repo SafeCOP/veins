@@ -6,9 +6,8 @@
 </routes>-->
 
 <routes>
-    <flow id="EW" begin="0" end="3600" vehsPerHour="1500" from="EC" to="CW"/>
-    <flow id="WE" begin="0" end="3600" vehsPerHour="1500" from="WC" to="CE"/>
-    <flow id="NS" begin="0" end="3600" vehsPerHour="700" from="NC" to="CS"/>
-    <flow id="SN" begin="0" end="3600" vehsPerHour="700" from="SC" to="CN"/>
-    <!-- trip id="prova" depart="0" from="NC" to="CS"/ -->
+    <flow id="EW" begin="0" end="3600" vehsPerHour="4500" from="EC" to="CW"/>
+    <flow id="WE" begin="0" end="3600" vehsPerHour="4500" from="WC" to="CE"/>
+    <flow id="NS" begin="0" end="3600" vehsPerHour="300"  from="NC" to="CS"/>
+    <flow id="SN" begin="0" end="3600" vehsPerHour="300"  from="SC" to="CN"/>
 </routes>

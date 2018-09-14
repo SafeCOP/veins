@@ -9,7 +9,6 @@
 	<copy file="pedcrossing.tll.xml" /> 
 	<copy file="pedcrossing.lad.xml" />
 	<copy file="viewsettings.xml" />
-	
 	<copy file="ped.py" type="config2"/>	
 	<copy file="run.sumocfg" type="config" />
 </launch>

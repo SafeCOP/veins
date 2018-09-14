@@ -39,13 +39,14 @@ using Veins::TraCICoord;
 Define_Module(Veins::TraCIScenarioManager);
 
 TraCIScenarioManager::TraCIScenarioManager() :
-		myAddVehicleTimer(0),
-		mobRng(0),
-		connection(0),
-		connectAndStartTrigger(0),
-		executeOneTimestepTrigger(0),
-		world(0),
-		cc(0)
+		myAddVehicleTimer(nullptr),
+		mobRng(nullptr),
+		connection(nullptr),
+		commandIfc(nullptr),
+		connectAndStartTrigger(nullptr),
+		executeOneTimestepTrigger(nullptr),
+		world(nullptr),
+		cc(nullptr)
 {
 }
 
@@ -302,7 +303,19 @@ void TraCIScenarioManager::init_traci() {
 		uint8_t variable5 = VAR_TELEPORT_ENDING_VEHICLES_IDS;
 		uint8_t variable6 = VAR_PARKING_STARTING_VEHICLES_IDS;
 		uint8_t variable7 = VAR_PARKING_ENDING_VEHICLES_IDS;
-		TraCIBuffer buf = connection->query(CMD_SUBSCRIBE_SIM_VARIABLE, TraCIBuffer() << beginTime << endTime << objectId << variableNumber << variable1 << variable2 << variable3 << variable4 << variable5 << variable6 << variable7);
+		TraCIBuffer buf = connection->query(CMD_SUBSCRIBE_SIM_VARIABLE,
+						TraCIBuffer()
+							<< beginTime
+							<< endTime
+							<< objectId
+							<< variableNumber
+							<< variable1
+							<< variable2
+							<< variable3
+							<< variable4
+							<< variable5
+							<< variable6
+							<< variable7);
 		processSubcriptionResult(buf);
 		ASSERT(buf.eof());
 	}
@@ -323,9 +336,8 @@ void TraCIScenarioManager::init_traci() {
 	if (obstacles) {
 		{
 			// get list of polygons
-			std::list<std::string> ids = getCommandInterface()->getPolygonIds();
-			for (std::list<std::string>::iterator i = ids.begin(); i != ids.end(); ++i) {
-				std::string id = *i;
+			std::set<std::string> ids = getCommandInterface()->getPolygonIds();
+			for (const std::string &id : ids) {
 				std::string typeId = getCommandInterface()->polygon(id).getTypeId();
 				if (!obstacles->isTypeSupported(typeId)) continue;
 				std::list<Coord> coords = getCommandInterface()->polygon(id).getShape();

@@ -2,28 +2,25 @@
 
 <tlLogics version="0.27" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tllogic_file.xsd">
 
-    <visualisation>
-        <registry-viewport value="true"/>
-    </visualisation>
-
-</configuration>
--->
-
-<tlLogics version="0.27" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tllogic_file.xsd">
-    <!--tlLogic id="C" type="static" programID="3" offset="0">
-        <phase duration="10000" state="ooooo"/>
+    <tlLogic id="Crossing" type="static" programID="Balanced" offset="0">
+        <phase duration="41" state="ggrrggrr"/>
+        <phase duration="4"  state="yyrryyrr"/>
+        <phase duration="41" state="rrggrrgg"/>
+        <phase duration="4"  state="rryyrryy"/>
     </tlLogic>
-	<tlLogic id="C" type="static" programID="1" offset="0">
-		<phase duration="78" state="ggrrggrr"/>
-        	<phase duration="4" state="yyrryyrr"/>
-        	<phase duration="4" state="rrggrrgg"/>
-        	<phase duration="4" state="rryyrryy"/>
-	</tlLogic>
-	<tlLogic id="C" type="static" programID="2" offset="0">
-		<phase duration="4" state="ggrrggrr"/>
-        	<phase duration="4" state="yyrryyrr"/>
-        	<phase duration="78" state="rrggrrgg"/>
-        	<phase duration="4" state="rryyrryy"/>
-	</tlLogic>-->
+
+    <tlLogic id="Crossing" type="static" programID="VerticalPriority" offset="0">
+        <phase duration="78" state="ggrrggrr"/>
+        <phase duration="4"  state="yyrryyrr"/>
+        <phase duration="4"  state="rrggrrgg"/>
+        <phase duration="4"  state="rryyrryy"/>
+    </tlLogic>
+
+    <tlLogic id="Crossing" type="static" programID="HorizontalPriority" offset="0">
+        <phase duration="4"  state="ggrrggrr"/>
+        <phase duration="4"  state="yyrryyrr"/>
+        <phase duration="78" state="rrggrrgg"/>
+        <phase duration="4"  state="rryyrryy"/>
+    </tlLogic>
     
 </tlLogics>
