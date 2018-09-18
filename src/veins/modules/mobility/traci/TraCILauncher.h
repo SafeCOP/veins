@@ -25,7 +25,8 @@
  * @brief
  * Launches a program (the TraCI server) when instantiated.
  *
- * See the Veins website <a href="http://veins.car2x.org/"> for a tutorial, documentation, and publications </a>.
+ * See the Veins website <a href="http://veins.car2x.org/"> for a tutorial,
+ * documentation, and publications </a>.
  *
  * @author Christoph Sommer
  *
@@ -34,20 +35,18 @@
  *
  */
 namespace Veins {
-class TraCILauncher
-{
-	public:
-		TraCILauncher(std::string commandLine);
-		~TraCILauncher();
+class TraCILauncher {
+public:
+  TraCILauncher(std::string commandLine);
+  ~TraCILauncher();
 
-	protected:
-
-#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__CYGWIN__) || defined(_WIN64)
+protected:
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) \
+  || defined(__CYGWIN__) || defined(_WIN64)
 #else
-		pid_t pid;
+  pid_t pid;
 #endif
-
 };
-}
+} // namespace Veins
 
 #endif

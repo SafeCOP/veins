@@ -25,14 +25,19 @@
 
 /**
  * @brief
- * Simple support module to take (a series of) screenshots of a simulation running in the TraCI server.
+ * Simple support module to take (a series of) screenshots of a simulation
+ * running in the TraCI server.
  *
- * Note that the TraCI server needs to be run in GUI mode and support taking screenshots for this to work.
+ * Note that the TraCI server needs to be run in GUI mode and support taking
+ * screenshots for this to work.
  *
- * The screenshots can then be converted to a video using something along the lines of
- * mencoder 'mf://results/screenshot-*.png' -mf w=800:h=600:fps=25:type=png -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac copy -o output.avi
+ * The screenshots can then be converted to a video using something along the
+ * lines of mencoder 'mf://results/screenshot-*.png' -mf
+ * w=800:h=600:fps=25:type=png -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac
+ * copy -o output.avi
  *
- * See the Veins website <a href="http://veins.car2x.org/"> for a tutorial, documentation, and publications </a>.
+ * See the Veins website <a href="http://veins.car2x.org/"> for a tutorial,
+ * documentation, and publications </a>.
  *
  * @author Christoph Sommer
  *
@@ -40,18 +45,15 @@
  *
  */
 namespace Veins {
-class TraCIScreenRecorder : public cSimpleModule
-{
-	public:
+class TraCIScreenRecorder : public cSimpleModule {
+public:
+  virtual void initialize(int stage);
+  virtual void handleMessage(cMessage *msg);
+  virtual void finish();
 
-		virtual void initialize(int stage);
-		virtual void handleMessage(cMessage *msg);
-		virtual void finish();
-
-	protected:
-
-		cMessage* takeScreenshot;
+protected:
+  cMessage *takeScreenshot;
 };
-}
+} // namespace Veins
 
 #endif

@@ -18,122 +18,127 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 #define WANT_WINSOCK2
 #include <platdep/sockets.h>
-#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__CYGWIN__) || defined(_WIN64)
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) \
+  || defined(__CYGWIN__) || defined(_WIN64)
 #include <ws2tcpip.h>
 #else
-#include <netinet/tcp.h>
-#include <netdb.h>
 #include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/tcp.h>
 #endif
 
-#include <sstream>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <sstream>
 
-#include "veins/modules/mobility/traci/TraCIScenarioManagerForker.h"
 #include "veins/modules/mobility/traci/TraCICommandInterface.h"
 #include "veins/modules/mobility/traci/TraCIConstants.h"
 #include "veins/modules/mobility/traci/TraCILauncher.h"
+#include "veins/modules/mobility/traci/TraCIScenarioManagerForker.h"
 
 #define MYDEBUG EV
 
-using Veins::TraCIScenarioManagerForker;
 using Veins::TraCILauncher;
+using Veins::TraCIScenarioManagerForker;
 
 Define_Module(Veins::TraCIScenarioManagerForker);
 
 namespace {
 
-	template<typename T> inline std::string replace(std::string haystack, std::string needle, T newValue) {
-		size_t i = haystack.find(needle, 0);
-		if (i == std::string::npos) return haystack;
-		std::ostringstream os;
-		os << newValue;
-		haystack.replace(i, needle.length(), os.str());
-		return haystack;
-	}
-
+template<typename T>
+inline std::string
+replace(std::string haystack, std::string needle, T newValue) {
+  size_t i = haystack.find(needle, 0);
+  if (i == std::string::npos)
+    return haystack;
+  std::ostringstream os;
+  os << newValue;
+  haystack.replace(i, needle.length(), os.str());
+  return haystack;
 }
 
+} // namespace
+
 TraCIScenarioManagerForker::TraCIScenarioManagerForker() {
-	server = 0;
+  server = 0;
 }
 
 TraCIScenarioManagerForker::~TraCIScenarioManagerForker() {
-	killServer();
+  killServer();
 }
 
-void TraCIScenarioManagerForker::initialize(int stage)
-{
-	if (stage == 1) {
-		commandLine = par("commandLine").stringValue();
-		configFile = par("configFile").stringValue();
-		seed = par("seed");
-		killServer();
-	}
-	TraCIScenarioManager::initialize(stage);
-	if (stage == 1) {
-		startServer();
-	}
+void TraCIScenarioManagerForker::initialize(int stage) {
+  if (stage == 1) {
+    commandLine = par("commandLine").stringValue();
+    configFile = par("configFile").stringValue();
+    seed = par("seed");
+    killServer();
+  }
+  TraCIScenarioManager::initialize(stage);
+  if (stage == 1) {
+    startServer();
+  }
 }
 
-void TraCIScenarioManagerForker::finish()
-{
-	TraCIScenarioManager::finish();
-	killServer();
+void TraCIScenarioManagerForker::finish() {
+  TraCIScenarioManager::finish();
+  killServer();
 }
 
 void TraCIScenarioManagerForker::startServer() {
-	// autoset port, if requested
-	if (port == -1) {
-		if (initsocketlibonce() != 0) throw cRuntimeError("Could not init socketlib");
+  // autoset port, if requested
+  if (port == -1) {
+    if (initsocketlibonce() != 0)
+      throw cRuntimeError("Could not init socketlib");
 
-		SOCKET sock = ::socket(AF_INET, SOCK_STREAM, 0);
-		if (sock < 0) {
-			throw cRuntimeError("Failed to create socket: %s", strerror(errno));
-		}
+    SOCKET sock = ::socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+      throw cRuntimeError("Failed to create socket: %s", strerror(errno));
+    }
 
-		struct sockaddr_in serv_addr;
-		struct sockaddr* serv_addr_p = (struct sockaddr*)&serv_addr;
-		memset(serv_addr_p, 0, sizeof(serv_addr));
-		serv_addr.sin_family = AF_INET;
-		serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-		serv_addr.sin_port = 0;
+    struct sockaddr_in serv_addr;
+    struct sockaddr *serv_addr_p = (struct sockaddr *) &serv_addr;
+    memset(serv_addr_p, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_port = 0;
 
-		if (::bind(sock, serv_addr_p, sizeof(serv_addr)) < 0){
-			throw cRuntimeError("Failed to bind socket: %s", strerror(errno));
-		}
+    if (::bind(sock, serv_addr_p, sizeof(serv_addr)) < 0) {
+      throw cRuntimeError("Failed to bind socket: %s", strerror(errno));
+    }
 
-		socklen_t len = sizeof(serv_addr);
-		if (getsockname(sock, serv_addr_p, &len) < 0){
-			throw cRuntimeError("Failed to get hostname: %s", strerror(errno));
-		}
+    socklen_t len = sizeof(serv_addr);
+    if (getsockname(sock, serv_addr_p, &len) < 0) {
+      throw cRuntimeError("Failed to get hostname: %s", strerror(errno));
+    }
 
-		port = ntohs(serv_addr.sin_port);
+    port = ntohs(serv_addr.sin_port);
 
-		closesocket(sock);
-	}
+    closesocket(sock);
+  }
 
-	// autoset seed, if requested
-	if (seed == -1) {
-		const char* seed_s = cSimulation::getActiveSimulation()->getEnvir()->getConfigEx()->getVariable(CFGVAR_RUNNUMBER);
-		seed = atoi(seed_s);
-	}
+  // autoset seed, if requested
+  if (seed == -1) {
+    const char *seed_s = cSimulation::getActiveSimulation()
+                           ->getEnvir()
+                           ->getConfigEx()
+                           ->getVariable(CFGVAR_RUNNUMBER);
+    seed = atoi(seed_s);
+  }
 
-	// assemble commandLine
-	commandLine = replace(commandLine, "$configFile", configFile);
-	commandLine = replace(commandLine, "$seed", seed);
-	commandLine = replace(commandLine, "$port", port);
+  // assemble commandLine
+  commandLine = replace(commandLine, "$configFile", configFile);
+  commandLine = replace(commandLine, "$seed", seed);
+  commandLine = replace(commandLine, "$port", port);
 
-	server = new TraCILauncher(commandLine);
+  server = new TraCILauncher(commandLine);
 }
 
 void TraCIScenarioManagerForker::killServer() {
-	if (server) {
-		delete server;
-		server = 0;
-	}
+  if (server) {
+    delete server;
+    server = 0;
+  }
 }
