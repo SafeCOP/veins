@@ -1,6 +1,8 @@
+<!--additionals> This file contains the dimensions of the lane detectors <additionals-->
+
 <additionals>
-   <laneAreaDetector id="EC_0" lane="EC_0" pos="0.00" length="88.55" freq="1" file="laneAreaDetector-EC_0"/>  
-   <laneAreaDetector id="EC_1" lane="EC_1" pos="0.00" length="88.55" freq="1" file="laneAreaDetector-EC_1"/>  
+   <laneAreaDetector id="EC_0" lane="EC_0" pos="0.00" length="90.55" freq="1" file="laneAreaDetector-EC_0"/>
+   <laneAreaDetector id="EC_1" lane="EC_1" pos="0.00" length="90.55" freq="1" file="laneAreaDetector-EC_1"/>
    <laneAreaDetector id="NC_0" lane="NC_0" pos="0.00" length="40.25" freq="1" file="laneAreaDetector-NC_0"/>
    <laneAreaDetector id="NC_1" lane="NC_1" pos="0.00" length="40.25" freq="1" file="laneAreaDetector-NC_1"/>  
    <laneAreaDetector id="WC_0" lane="WC_0" pos="0.00" length="90.25" freq="1" file="laneAreaDetector-WC_0"/>  
