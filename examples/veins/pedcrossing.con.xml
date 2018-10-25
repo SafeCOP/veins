@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <connections version="0.27" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/connections_file.xsd">
+
 	<connection from="EC" to="CW" fromLane="0" toLane="0"/>
         <connection from="EC" to="CW" fromLane="1" toLane="1"/>
 	<connection from="NC" to="CS" fromLane="0" toLane="0"/>
@@ -9,5 +10,21 @@
         <connection from="WC" to="CE" fromLane="1" toLane="1"/>
 	<connection from="SC" to="CN" fromLane="0" toLane="0"/>
 	<connection from="SC" to="CN" fromLane="1" toLane="1" />
+
+	<connection from="EC_new" to="CW_new" fromLane="0" toLane="0"/>
+        <connection from="EC_new" to="CW_new" fromLane="1" toLane="1"/>
+	<connection from="NC_new" to="CS_new" fromLane="0" toLane="0"/>
+	<connection from="NC_new" to="CS_new" fromLane="1" toLane="1"/>
+	<connection from="WC_new" to="CE_new" fromLane="0" toLane="0"/>
+        <connection from="WC_new" to="CE_new" fromLane="1" toLane="1"/>
+	<connection from="SC_new" to="CN_new" fromLane="0" toLane="0"/>
+	<connection from="SC_new" to="CN_new" fromLane="1" toLane="1" />
+
+	<!--connection>
+	<connection from="EC_new" to="CW_new" fromLane="0" toLane="0"/>
+        <connection from="EC_new" to="CW_new" fromLane="1" toLane="1"/>
+	<connection from="WC_new" to="CE_new" fromLane="0" toLane="0"/>
+        <connection from="WC_new" to="CE_new" fromLane="1" toLane="1"/>
+	</connection-->
 
 </connections>

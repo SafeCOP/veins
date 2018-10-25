@@ -23,4 +23,25 @@
         <phase duration="4"  state="rryyrryy"/>
     </tlLogic>
     
+    <tlLogic id="Crossing_new" type="static" programID="Balanced" offset="0">
+        <phase duration="41" state="ggrrggrr"/>
+        <phase duration="4"  state="yyrryyrr"/>
+        <phase duration="41" state="rrggrrgg"/>
+        <phase duration="4"  state="rryyrryy"/>
+    </tlLogic>
+
+    <tlLogic id="Crossing_new" type="static" programID="VerticalPriority" offset="0">
+        <phase duration="78" state="ggrrggrr"/>
+        <phase duration="4"  state="yyrryyrr"/>
+        <phase duration="4"  state="rrggrrgg"/>
+        <phase duration="4"  state="rryyrryy"/>
+    </tlLogic>
+
+    <tlLogic id="Crossing_new" type="static" programID="HorizontalPriority" offset="0">
+        <phase duration="4"  state="ggrrggrr"/>
+        <phase duration="4"  state="yyrryyrr"/>
+        <phase duration="78" state="rrggrrgg"/>
+        <phase duration="4"  state="rryyrryy"/>
+    </tlLogic>
+    
 </tlLogics>

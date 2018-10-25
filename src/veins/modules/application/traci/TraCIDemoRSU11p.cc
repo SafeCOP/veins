@@ -64,12 +64,14 @@ void TraCIDemoRSU11p::initialize(int stage) {
   scheduleAt(simTime(), initialEvt);
 }
 
-static inline void dumpCapacityMetric(simtime_t SimTime,
+static inline void dumpCapacityMetric(const std::string &TLName,
+                                      simtime_t SimTime,
                                       double capacity,
                                       double maxCapacity,
                                       const std::string &CurrProgram) {
   std::ofstream f_perf;
-  f_perf.open(STATS_FILENAME, std::ios::app);
+  std::string filename = TLName + STATS_FILENAME;
+  f_perf.open(filename, std::ios::app);
   if (f_perf.is_open()) {
     f_perf << SimTime << "\t\t" << capacity << "\t\t" << maxCapacity << "\t\t"
            << CurrProgram << std::endl;
@@ -86,9 +88,9 @@ static const constexpr int YellowTime = 4;
 // Total fixed time for yellow
 static const constexpr int TotalYellowTime = 2 * YellowTime;
 
-static inline double computeCapacity(const double VerGreenTime,
-                                     const int HorInputFlow,
-                                     const int VerInputFlow) {
+static double computeCapacity(const double VerGreenTime,
+                              const int HorInputFlow,
+                              const int VerInputFlow) {
   // Saturation flow of access i. In this case all the accesses are equal.
   // The exact reason why the value 120 was choosed it's not clear to me,
   // but I guess that given that it's a constant it does not really matter
@@ -109,8 +111,19 @@ static inline double computeCapacity(const double VerGreenTime,
   return std::min(HorCapacity, VerCapacity);
 }
 
-void TraCIDemoRSU11p::setOptimalProgram(
-  TraCICommandInterface::Trafficlight &TL) {
+static bool endsWith(const std::string &haystack, const std::string &needle) {
+  const auto needle_len = needle.length();
+  const auto haystack_len = haystack.length();
+  if (needle_len > haystack_len)
+    return false;
+  const auto offset = haystack_len - needle_len;
+  return std::memcmp((void *)(needle.data()),
+                     (void *)(haystack.data() + offset),
+                     needle_len) == 0;
+}
+
+void TraCIDemoRSU11p::setOptimalProgram(const std::string &TLName) {
+  TraCICommandInterface::Trafficlight TL = traci->trafficlight(TLName);
   /**
    * This function tries to set the traffic light program to maximize the
    * intersection capacity, as defined in the paper "Global Sensitivity
@@ -118,9 +131,12 @@ void TraCIDemoRSU11p::setOptimalProgram(
    * N. Sacco Bauda` - IFAC Proceedings Volumes, Vol.47, Issue 3, 2014 -
    * https://doi.org/10.3182/20140824-6-ZA-1003.01975
    */
+  int TLId = endsWith(TLName, "_new") ? 1 : 0;
+  auto &CurrHorInputFlow = HorInputFlow[TLId];
+  auto &CurrVerInputFlow = VerInputFlow[TLId];
   const double BalancedCapacity = computeCapacity(41,
-                                                  HorInputFlow,
-                                                  VerInputFlow);
+                                                  CurrHorInputFlow,
+                                                  CurrVerInputFlow);
   double MaxCapacity = 0.0;
   int MaxCapacityVerGreenSecs = 0;
 
@@ -135,8 +151,8 @@ void TraCIDemoRSU11p::setOptimalProgram(
 
     const double VerGreenTime = static_cast<double>(VerGreenSecs);
     const double ProgramCapacity = computeCapacity(VerGreenTime,
-                                                   HorInputFlow,
-                                                   VerInputFlow);
+                                                   CurrHorInputFlow,
+                                                   CurrVerInputFlow);
 
     // Store the id of the program with max capacity, along with the value of
     // the max capacity, used later for statistics
@@ -146,10 +162,10 @@ void TraCIDemoRSU11p::setOptimalProgram(
     }
   }
 
-  dumpCapacityMetric(simTime(), BalancedCapacity, MaxCapacity, NewProgram);
-
   std::string NewProgram = "VerticalGreen"
                            + std::to_string(MaxCapacityVerGreenSecs) + "Secs";
+
+  dumpCapacityMetric(TLName, simTime(), BalancedCapacity, MaxCapacity, NewProgram);
 
   const std::string &CurrProgram = TL.getCurrentProgram();
   if (CurrProgram == NewProgram)
@@ -188,40 +204,58 @@ void TraCIDemoRSU11p::setOptimalProgram(
   else
     TL.setPhaseLeftDuration(0);
 
-  HorInputFlow = 0;
-  VerInputFlow = 0;
+  CurrHorInputFlow = 0;
+  CurrVerInputFlow = 0;
 
   return;
 }
 
 void TraCIDemoRSU11p::computeTrafficFlows(TraCICommandInterface *traci) {
   // Count the number of vehicles in horizontal and vertical directions
-  std::set<std::string> CurrVerVehicles;
-  std::set<std::string> CurrHorVehicles;
-  for (const auto &ID : traci->getLaneAreaDetectorIds()) {
-    auto LaneDetector = traci->laneAreaDetector(ID);
-    std::set<std::string> Vehicles = LaneDetector.getLastStepVehicleIDs();
+  for (int TLId = 0; TLId < NumIntersections; ++TLId) {
+    auto &TLHorInputFlow = HorInputFlow[TLId];
+    auto &TLVerInputFlow = VerInputFlow[TLId];
+    auto &TLHorVehicles = PrevHorVehicles[TLId];
+    auto &TLVerVehicles = PrevVerVehicles[TLId];
 
-    // This is ad-hoc to tell horizontal and vertical lanes apart.
-    // It depends on the names given to the lanes objects in the
-    // configuration files and it may change in future.
-    char c = ID.at(0);
-    if (c == 'E' or c == 'W')
-      CurrHorVehicles.insert(Vehicles.begin(), Vehicles.end());
-    else
-      CurrVerVehicles.insert(Vehicles.begin(), Vehicles.end());
+    std::set<std::string> CurrVerVehicles;
+    std::set<std::string> CurrHorVehicles;
+    for (const auto &ID : traci->getLaneAreaDetectorIds()) {
+      // This is ad-hoc to tell the two traffic lights apart
+      if (TLId != endsWith(ID, "_new"))
+        continue;
+      auto LaneDetector = traci->laneAreaDetector(ID);
+      std::set<std::string> Vehicles = LaneDetector.getLastStepVehicleIDs();
+
+      // This is ad-hoc to tell horizontal and vertical lanes apart.
+      // It depends on the names given to the lanes objects in the
+      // configuration files and it may change in future.
+      assert(ID.length() > 4);
+      char c = ID.at(4);
+      if (c == 'E' or c == 'W')
+        CurrHorVehicles.insert(Vehicles.begin(), Vehicles.end());
+      else
+        CurrVerVehicles.insert(Vehicles.begin(), Vehicles.end());
+    }
+
+    for (const auto &V : TLHorVehicles)
+      if (CurrHorVehicles.count(V) != 0)
+        TLHorInputFlow += 1;
+
+    for (const auto &V : TLVerVehicles)
+      if (CurrVerVehicles.count(V) != 0)
+        TLVerInputFlow += 1;
+
+    TLHorVehicles = std::move(CurrHorVehicles);
+    TLVerVehicles = std::move(CurrVerVehicles);
   }
+}
 
-  for (const auto &V : PrevHorVehicles)
-    if (CurrHorVehicles.count(V) != 0)
-      HorInputFlow += 1;
-
-  for (const auto &V : PrevVerVehicles)
-    if (CurrVerVehicles.count(V) != 0)
-      VerInputFlow += 1;
-
-  PrevHorVehicles = std::move(CurrHorVehicles);
-  PrevVerVehicles = std::move(CurrVerVehicles);
+static void setBalanced(TraCICommandInterface::Trafficlight &TL) {
+  assert(TL.hasTraCI());
+  assert(TL.hasConnection());
+  TL.setProgram("Balanced");
+  TL.setPhaseIndex(0);
 }
 
 void TraCIDemoRSU11p::handleSelfMsg(cMessage *msg) {
@@ -245,12 +279,11 @@ void TraCIDemoRSU11p::handleSelfMsg(cMessage *msg) {
     //     lanes, and to decide the new policies to adopt according to the
     //     traffic
 
-    // Set the default balanced program for the traffic light
-    TraCICommandInterface::Trafficlight TL = traci->trafficlight("Crossing");
-    assert(TL.hasTraCI());
-    assert(TL.hasConnection());
-    TL.setProgram("Balanced");
-    TL.setPhaseIndex(0);
+    // Set the default balanced program for the traffic lights
+    auto OldTL = traci->trafficlight("Crossing");
+    auto NewTL = traci->trafficlight("Crossing_new");
+    setBalanced(OldTL);
+    setBalanced(NewTL);
 
     // Cleanup the event
     cancelEvent(initialEvt);
@@ -273,7 +306,8 @@ void TraCIDemoRSU11p::handleSelfMsg(cMessage *msg) {
   } break;
 
   case CHECK_TRAFFIC_EVT: {
-    setOptimalProgram(traci->trafficlight("Crossing"));
+    setOptimalProgram("Crossing");
+    setOptimalProgram("Crossing_new");
     cancelEvent(checkTrafficEvt);
     scheduleAt(simTime() + 5, checkTrafficEvt);
   } break;
@@ -297,10 +331,12 @@ static inline void cleanupMsg(TraCIDemoRSU11p *RSU, cMessage **MsgPtr) {
 
 void TraCIDemoRSU11p::finish() {
 
-  PrevHorVehicles = {};
-  PrevVerVehicles = {};
-  HorInputFlow = 0;
-  VerInputFlow = 0;
+  for (int TLID = 0; TLID < NumIntersections; ++TLID) {
+    PrevHorVehicles[TLID] = {};
+    PrevVerVehicles[TLID] = {};
+    HorInputFlow[TLID] = 0;
+    VerInputFlow[TLID] = 0;
+  }
 
   cleanupMsg(this, &sendTimerEvt);
   cleanupMsg(this, &checkTrafficEvt);

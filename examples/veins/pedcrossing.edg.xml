@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <edges version="0.27" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/edges_file.xsd">
-    <edge id="CE" from="Crossing" to="E" priority="1" numLanes="2" speed="13.89" disallow="pedestrian"/>
-    <edge id="CS" from="Crossing" to="S" priority="1" numLanes="2" speed="13.89"  disallow="pedestrian"/>
-    <edge id="CW" from="Crossing" to="W" priority="1" numLanes="2" speed="13.89" disallow="pedestrian"/>
-    <edge id="CN" from="Crossing" to="N" priority="1" numLanes="2" speed="13.89" disallow="pedestrian"/>
-    <edge id="EC" from="E" to="Crossing" priority="1" numLanes="2" speed="13.89" disallow="pedestrian"/>
-    <edge id="NC" from="N" to="Crossing" priority="1" numLanes="2" speed="13.89"  disallow="pedestrian"/>
-    <edge id="WC" from="W" to="Crossing" priority="1" numLanes="2" speed="13.89" disallow="pedestrian"/>
-    <edge id="SC" from="S" to="Crossing" priority="1" numLanes="2" speed="13.89" disallow="pedestrian"/>
+
+    <edge id="CE" from="Crossing" to="E"        priority="1" numLanes="2" speed="13.89"/>
+    <edge id="CS" from="Crossing" to="S"        priority="1" numLanes="2" speed="13.89"/>
+    <edge id="CW" from="Crossing" to="W"        priority="1" numLanes="2" speed="13.89"/>
+    <edge id="CN" from="Crossing" to="N"        priority="1" numLanes="2" speed="13.89"/>
+    <edge id="EC" from="E"        to="Crossing" priority="1" numLanes="2" speed="13.89"/>
+    <edge id="NC" from="N"        to="Crossing" priority="1" numLanes="2" speed="13.89"/>
+    <edge id="WC" from="W"        to="Crossing" priority="1" numLanes="2" speed="13.89"/>
+    <edge id="SC" from="S"        to="Crossing" priority="1" numLanes="2" speed="13.89"/>
+
+    <edge id="CE_new" from="Crossing_new" to="E_new"        priority="1" numLanes="2" speed="13.89"/>
+    <edge id="CS_new" from="Crossing_new" to="S_new"        priority="1" numLanes="2" speed="13.89"/>
+    <edge id="CW_new" from="Crossing_new" to="W_new"        priority="1" numLanes="2" speed="13.89"/>
+    <edge id="CN_new" from="Crossing_new" to="N_new"        priority="1" numLanes="2" speed="13.89"/>
+    <edge id="EC_new" from="E_new"        to="Crossing_new" priority="1" numLanes="2" speed="13.89"/>
+    <edge id="NC_new" from="N_new"        to="Crossing_new" priority="1" numLanes="2" speed="13.89"/>
+    <edge id="WC_new" from="W_new"        to="Crossing_new" priority="1" numLanes="2" speed="13.89"/>
+    <edge id="SC_new" from="S_new"        to="Crossing_new" priority="1" numLanes="2" speed="13.89"/>
+
+    <!--edge>
+    <edge id="oldnew_go_right" from="E"        to="W_new" priority="1" numLanes="2"/>
+    <edge id="oldnew_go_left"  from="W"        to="E_new" priority="1" numLanes="2"/>
+    <edge-->
+
 </edges>

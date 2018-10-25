@@ -25,9 +25,6 @@
 
 #include "veins/modules/application/ieee80211p/BaseWaveApplLayer.h"
 
-// find a better way to query SUMO via TraCI for knowing the number of programs
-// and the duration of the green for each program
-
 /**
  * Small RSU Demo using 11p
  */
@@ -38,23 +35,21 @@ private:
   cMessage *initialEvt = nullptr;
   Veins::TraCIScenarioManager *manager = nullptr;
 
+  static const constexpr int NumIntersections = 2;
+
 public:
   virtual void initialize(int stage) override;
   virtual void finish() override;
 
 protected:
   virtual void handleSelfMsg(cMessage *msg);
-  // method for applying optimal control algorithm
-  void setOptimalProgram(TraCICommandInterface::Trafficlight &TL);
-  void setOptimalProgram(TraCICommandInterface::Trafficlight &&TL) {
-    setOptimalProgram(TL);
-  }
+  void setOptimalProgram(const std::string &TLName);
   void computeTrafficFlows(TraCICommandInterface *traci);
 
-  std::set<std::string> PrevHorVehicles = {};
-  std::set<std::string> PrevVerVehicles = {};
-  int HorInputFlow = 0;
-  int VerInputFlow = 0;
+  std::set<std::string> PrevHorVehicles[NumIntersections] = { {}, {} };
+  std::set<std::string> PrevVerVehicles[NumIntersections] = { {}, {} };
+  int HorInputFlow[NumIntersections] = { 0 , 0 };
+  int VerInputFlow[NumIntersections] = { 0 , 0 };
 };
 
 #endif
