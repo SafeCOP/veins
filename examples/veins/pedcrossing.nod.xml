@@ -8,5 +8,4 @@
     <node id="N" x="100.00" y="100.00" type="unregulated"/>
     <node id="S" x="100.00" y="0.00"   type="unregulated"/>
     <node id="W" x="0.00"   y="50.00"  type="unregulated"/>
-    <node id="P" x="102.00" y="52.00"  type="unregulated"/>
 </nodes>
