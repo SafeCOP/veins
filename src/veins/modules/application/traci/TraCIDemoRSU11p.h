@@ -46,10 +46,14 @@ protected:
   void setOptimalProgram(const std::string &TLName);
   void computeTrafficFlows(TraCICommandInterface *traci);
 
-  std::set<std::string> PrevHorVehicles[NumIntersections] = { {}, {} };
-  std::set<std::string> PrevVerVehicles[NumIntersections] = { {}, {} };
-  int HorInputFlow[NumIntersections] = { 0 , 0 };
-  int VerInputFlow[NumIntersections] = { 0 , 0 };
+  std::set<std::string> PrevNorthVehicles[NumIntersections] = { {}, {} };
+  std::set<std::string> PrevSouthVehicles[NumIntersections] = { {}, {} };
+  std::set<std::string> PrevEastVehicles[NumIntersections] = { {}, {} };
+  std::set<std::string> PrevWestVehicles[NumIntersections] = { {}, {} };
+  int NorthInputFlow[NumIntersections] = { 0 , 0 };
+  int SouthInputFlow[NumIntersections] = { 0 , 0 };
+  int EastInputFlow[NumIntersections] = { 0 , 0 };
+  int WestInputFlow[NumIntersections] = { 0 , 0 };
 };
 
 #endif
