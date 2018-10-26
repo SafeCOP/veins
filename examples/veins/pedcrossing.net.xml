@@ -33,12 +33,12 @@ First Semaphore
         <lane id="CE_1" index="1" speed="13.89" length="91.95" shape="108.05,48.35 200.00,48.35"/>
     </edge>
     <edge id="CN" from="Crossing" to="N" priority="1">
-        <lane id="CN_0" index="0" speed="13.89" length="41.95" shape="104.95,58.05 104.95,100.00"/>
-        <lane id="CN_1" index="1" speed="13.89" length="41.95" shape="101.65,58.05 101.65,100.00"/>
+        <lane id="CN_0" index="0" speed="13.89" length="91.95" shape="104.95,58.05 104.95,150.00"/>
+        <lane id="CN_1" index="1" speed="13.89" length="91.95" shape="101.65,58.05 101.65,150.00"/>
     </edge>
     <edge id="CS" from="Crossing" to="S" priority="1">
-        <lane id="CS_0" index="0" speed="13.89" length="41.95" shape="95.05,41.95 95.05,0.00"/>
-        <lane id="CS_1" index="1" speed="13.89" length="41.95" shape="98.35,41.95 98.35,0.00"/>
+        <lane id="CS_0" index="0" speed="13.89" length="91.95" shape="95.05,41.95 95.05,-50.00"/>
+        <lane id="CS_1" index="1" speed="13.89" length="91.95" shape="98.35,41.95 98.35,-50.00"/>
     </edge>
     <edge id="CW" from="Crossing" to="W" priority="1">
         <lane id="CW_0" index="0" speed="13.89" length="91.95" shape="91.95,54.95 0.00,54.95"/>
@@ -49,12 +49,12 @@ First Semaphore
         <lane id="EC_1" index="1" speed="13.89" length="91.95" shape="200.00,51.65 108.05,51.65"/>
     </edge>
     <edge id="NC" from="N" to="Crossing" priority="1">
-        <lane id="NC_0" index="0" speed="13.89" length="41.95" shape="95.05,100.00 95.05,58.05"/>
-        <lane id="NC_1" index="1" speed="13.89" length="41.95" shape="98.35,100.00 98.35,58.05"/>
+        <lane id="NC_0" index="0" speed="13.89" length="91.95" shape="95.05,150.00 95.05,58.05"/>
+        <lane id="NC_1" index="1" speed="13.89" length="91.95" shape="98.35,150.00 98.35,58.05"/>
     </edge>
     <edge id="SC" from="S" to="Crossing" priority="1">
-        <lane id="SC_0" index="0" speed="13.89" length="41.95" shape="104.95,0.00 104.95,41.95"/>
-        <lane id="SC_1" index="1" speed="13.89" length="41.95" shape="101.65,0.00 101.65,41.95"/>
+        <lane id="SC_0" index="0" speed="13.89" length="91.95" shape="104.95,-50.00 104.95,41.95"/>
+        <lane id="SC_1" index="1" speed="13.89" length="91.95" shape="101.65,-50.00 101.65,41.95"/>
     </edge>
     <edge id="WC" from="W" to="Crossing" priority="1">
         <lane id="WC_0" index="0" speed="13.89" length="91.95" shape="0.00,45.05 91.95,45.05"/>
@@ -124,12 +124,12 @@ Second Semaphore
         <lane id="CE_1_new" index="1" speed="13.89" length="91.95" shape="308.05,48.35 400.00,48.35"/>
     </edge>
     <edge id="CN_new" from="Crossing_new" to="N_new" priority="1">
-        <lane id="CN_0_new" index="0" speed="13.89" length="41.95" shape="304.95,58.05 304.95,100.00"/>
-        <lane id="CN_1_new" index="1" speed="13.89" length="41.95" shape="301.65,58.05 301.65,100.00"/>
+        <lane id="CN_0_new" index="0" speed="13.89" length="91.95" shape="304.95,58.05 304.95,150.00"/>
+        <lane id="CN_1_new" index="1" speed="13.89" length="91.95" shape="301.65,58.05 301.65,150.00"/>
     </edge>
     <edge id="CS_new" from="Crossing_new" to="S_new" priority="1">
-        <lane id="CS_0_new" index="0" speed="13.89" length="41.95" shape="295.05,41.95 295.05,0.00"/>
-        <lane id="CS_1_new" index="1" speed="13.89" length="41.95" shape="298.35,41.95 298.35,0.00"/>
+        <lane id="CS_0_new" index="0" speed="13.89" length="91.95" shape="295.05,41.95 295.05,-50.00"/>
+        <lane id="CS_1_new" index="1" speed="13.89" length="91.95" shape="298.35,41.95 298.35,-50.00"/>
     </edge>
     <edge id="CW_new" from="Crossing_new" to="W_new" priority="1">
         <lane id="CW_0_new" index="0" speed="13.89" length="91.95" shape="291.95,54.95 200.00,54.95"/>
@@ -140,12 +140,12 @@ Second Semaphore
         <lane id="EC_1_new" index="1" speed="13.89" length="91.95" shape="400.00,51.65 308.05,51.65"/>
     </edge>
     <edge id="NC_new" from="N_new" to="Crossing_new" priority="1">
-        <lane id="NC_0_new" index="0" speed="13.89" length="41.95" shape="295.05,100.00 295.05,58.05"/>
-        <lane id="NC_1_new" index="1" speed="13.89" length="41.95" shape="298.35,100.00 298.35,58.05"/>
+        <lane id="NC_0_new" index="0" speed="13.89" length="91.95" shape="295.05,150.00 295.05,58.05"/>
+        <lane id="NC_1_new" index="1" speed="13.89" length="91.95" shape="298.35,150.00 298.35,58.05"/>
     </edge>
     <edge id="SC_new" from="S_new" to="Crossing_new" priority="1">
-        <lane id="SC_0_new" index="0" speed="13.89" length="41.95" shape="304.95,0.00 304.95,41.95"/>
-        <lane id="SC_1_new" index="1" speed="13.89" length="41.95" shape="301.65,0.00 301.65,41.95"/>
+        <lane id="SC_0_new" index="0" speed="13.89" length="91.95" shape="304.95,-50.00 304.95,41.95"/>
+        <lane id="SC_1_new" index="1" speed="13.89" length="91.95" shape="301.65,-50.00 301.65,41.95"/>
     </edge>
     <edge id="WC_new" from="W_new" to="Crossing_new" priority="1">
         <lane id="WC_0_new" index="0" speed="13.89" length="91.95" shape="200.00,45.05 291.95,45.05"/>
