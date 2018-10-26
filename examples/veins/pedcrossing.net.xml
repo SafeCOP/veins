@@ -185,4 +185,10 @@ Second Semaphore
     <connection from=":C_4_new" to="CN_new" fromLane="1" toLane="1" dir="s" state="M"/>
     <connection from=":C_6_new" to="CE_new" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":C_6_new" to="CE_new" fromLane="1" toLane="1" dir="s" state="M"/>
+
+    <connection from="CE"     to="WC_new" fromLane="0" toLane="0" dir="s" state="o"/>
+    <connection from="CE"     to="WC_new" fromLane="1" toLane="1" dir="s" state="o"/>
+    <connection from="CW_new" to="EC"     fromLane="0" toLane="0" dir="s" state="o"/>
+    <connection from="CW_new" to="EC"     fromLane="1" toLane="1" dir="s" state="o"/>
+
 </net>

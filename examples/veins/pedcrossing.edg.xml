@@ -20,9 +20,7 @@
     <edge id="WC_new" from="W_new"        to="Crossing_new" priority="1" numLanes="2" speed="13.89"/>
     <edge id="SC_new" from="S_new"        to="Crossing_new" priority="1" numLanes="2" speed="13.89"/>
 
-    <!--edge>
-    <edge id="oldnew_go_right" from="E"        to="W_new" priority="1" numLanes="2"/>
-    <edge id="oldnew_go_left"  from="W"        to="E_new" priority="1" numLanes="2"/>
-    <edge-->
+    <edge from="CE"     to="WC_new" priority="1" numLanes="2"/>
+    <edge from="CW_new" to="EC"     priority="1" numLanes="2"/>
 
 </edges>

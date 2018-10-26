@@ -18,13 +18,6 @@
 	<connection from="WC_new" to="CE_new" fromLane="0" toLane="0"/>
         <connection from="WC_new" to="CE_new" fromLane="1" toLane="1"/>
 	<connection from="SC_new" to="CN_new" fromLane="0" toLane="0"/>
-	<connection from="SC_new" to="CN_new" fromLane="1" toLane="1" />
-
-	<!--connection>
-	<connection from="EC_new" to="CW_new" fromLane="0" toLane="0"/>
-        <connection from="EC_new" to="CW_new" fromLane="1" toLane="1"/>
-	<connection from="WC_new" to="CE_new" fromLane="0" toLane="0"/>
-        <connection from="WC_new" to="CE_new" fromLane="1" toLane="1"/>
-	</connection-->
+	<connection from="SC_new" to="CN_new" fromLane="1" toLane="1"/>
 
 </connections>
