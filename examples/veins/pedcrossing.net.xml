@@ -27,19 +27,6 @@ First Semaphore
         <lane id=":C_6_1" index="1" speed="13.89" length="16.10" shape="91.95,48.35 108.05,48.35"/>
     </edge>
 
-    <edge id=":E_0" function="internal">
-        <lane id=":E_0_0" index="0" speed="13.89" length="4.82" shape="200.00,48.35 201.24,49.18 201.65,50.00 201.24,50.83 200.00,51.65"/>
-    </edge>
-    <edge id=":N_0" function="internal">
-        <lane id=":N_0_0" index="0" speed="13.89" length="4.82" shape="101.65,100.00 100.82,101.24 100.00,101.65 99.17,101.24 98.35,100.00"/>
-    </edge>
-    <edge id=":S_0" function="internal">
-        <lane id=":S_0_0" index="0" speed="13.89" length="4.82" shape="98.35,0.00 99.18,-1.24 100.00,-1.65 100.83,-1.24 101.65,0.00"/>
-    </edge>
-    <edge id=":W_0" function="internal">
-        <lane id=":W_0_0" index="0" speed="13.89" length="4.82" shape="0.00,51.65 -1.24,50.82 -1.65,50.00 -1.24,49.17 0.00,48.35"/>
-    </edge>
-
     <!-- These are the edges between the lanes and the center of the crossing -->
     <edge id="CE" from="Crossing" to="E" priority="1">
         <lane id="CE_0" index="0" speed="13.89" length="91.95" shape="108.05,45.05 200.00,45.05"/>
@@ -91,11 +78,6 @@ First Semaphore
         <phase duration="10000" state="oooooooo"/>
     </tlLogic>
 
-    <connection from="CE" to="EC" fromLane="1" toLane="1" via=":E_0_0" dir="t" state="M"/>
-    <connection from="CN" to="NC" fromLane="1" toLane="1" via=":N_0_0" dir="t" state="M"/>
-    <connection from="CS" to="SC" fromLane="1" toLane="1" via=":S_0_0" dir="t" state="M"/>
-    <connection from="CW" to="WC" fromLane="1" toLane="1" via=":W_0_0" dir="t" state="M"/>
-
     <connection from="NC" to="CS" fromLane="0" toLane="0" via=":C_0_0" tl="Crossing" linkIndex="0" dir="s" state="o"/>
     <connection from="NC" to="CS" fromLane="1" toLane="1" via=":C_0_1" tl="Crossing" linkIndex="1" dir="s" state="o"/>
     <connection from="EC" to="CW" fromLane="0" toLane="0" via=":C_2_0" tl="Crossing" linkIndex="2" dir="s" state="o"/>
@@ -113,11 +95,6 @@ First Semaphore
     <connection from=":C_4" to="CN" fromLane="1" toLane="1" dir="s" state="M"/>
     <connection from=":C_6" to="CE" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":C_6" to="CE" fromLane="1" toLane="1" dir="s" state="M"/>
-
-    <connection from=":E_0" to="EC" fromLane="0" toLane="1" dir="s" state="M"/>
-    <connection from=":N_0" to="NC" fromLane="0" toLane="1" dir="s" state="M"/>
-    <connection from=":S_0" to="SC" fromLane="0" toLane="1" dir="s" state="M"/>
-    <connection from=":W_0" to="WC" fromLane="0" toLane="1" dir="s" state="M"/>
 
 <!--
 
@@ -140,19 +117,6 @@ Second Semaphore
     <edge id=":C_6_new" function="internal">
         <lane id=":C_6_0_new" index="0" speed="13.89" length="16.10" shape="291.95,45.05 308.05,45.05"/>
         <lane id=":C_6_1_new" index="1" speed="13.89" length="16.10" shape="291.95,48.35 308.05,48.35"/>
-    </edge>
-
-    <edge id=":E_0_new" function="internal">
-        <lane id=":E_0_0_new" index="0" speed="13.89" length="4.82" shape="400.00,48.35 401.24,49.18 401.65,50.00 401.24,50.83 400.00,51.65"/>
-    </edge>
-    <edge id=":N_0_new" function="internal">
-        <lane id=":N_0_0_new" index="0" speed="13.89" length="4.82" shape="301.65,100.00 300.82,101.24 300.00,101.65 299.17,101.24 298.35,100.00"/>
-    </edge>
-    <edge id=":S_0_new" function="internal">
-        <lane id=":S_0_0_new" index="0" speed="13.89" length="4.82" shape="298.35,0.00 299.18,-1.24 300.00,-1.65 300.83,-1.24 301.65,0.00"/>
-    </edge>
-    <edge id=":W_0_new" function="internal">
-        <lane id=":W_0_0_new" index="0" speed="13.89" length="4.82" shape="200.00,51.65 191.24,50.82 191.65,50.00 191.24,49.17 200.00,48.35"/>
     </edge>
 
     <edge id="CE_new" from="Crossing_new" to="E_new" priority="1">
@@ -204,11 +168,6 @@ Second Semaphore
         <phase duration="10000" state="oooooooo"/>
     </tlLogic>
 
-    <connection from="CE_new" to="EC_new" fromLane="1" toLane="1" via=":E_0_0_new" dir="t" state="M"/>
-    <connection from="CN_new" to="NC_new" fromLane="1" toLane="1" via=":N_0_0_new" dir="t" state="M"/>
-    <connection from="CS_new" to="SC_new" fromLane="1" toLane="1" via=":S_0_0_new" dir="t" state="M"/>
-    <connection from="CW_new" to="WC_new" fromLane="1" toLane="1" via=":W_0_0_new" dir="t" state="M"/>
-
     <connection from="NC_new" to="CS_new" fromLane="0" toLane="0" via=":C_0_0_new" tl="Crossing_new" linkIndex="0" dir="s" state="o"/>
     <connection from="NC_new" to="CS_new" fromLane="1" toLane="1" via=":C_0_1_new" tl="Crossing_new" linkIndex="1" dir="s" state="o"/>
     <connection from="EC_new" to="CW_new" fromLane="0" toLane="0" via=":C_2_0_new" tl="Crossing_new" linkIndex="2" dir="s" state="o"/>
@@ -226,8 +185,4 @@ Second Semaphore
     <connection from=":C_4_new" to="CN_new" fromLane="1" toLane="1" dir="s" state="M"/>
     <connection from=":C_6_new" to="CE_new" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":C_6_new" to="CE_new" fromLane="1" toLane="1" dir="s" state="M"/>
-    <connection from=":E_0_new" to="EC_new" fromLane="0" toLane="1" dir="s" state="M"/>
-    <connection from=":N_0_new" to="NC_new" fromLane="0" toLane="1" dir="s" state="M"/>
-    <connection from=":S_0_new" to="SC_new" fromLane="0" toLane="1" dir="s" state="M"/>
-    <connection from=":W_0_new" to="WC_new" fromLane="0" toLane="1" dir="s" state="M"/>
 </net>
