@@ -22,6 +22,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <random>
 
 #include "veins/modules/application/traci/TraCIDemoRSU11p.h"
 #include "veins/modules/mobility/traci/TraCICommandInterface.h"
@@ -35,6 +36,40 @@
 #define INITIAL_EVT 4
 
 #define STATS_FILENAME "perfMetrics.txt"
+
+static const constexpr double Error = 0.05;
+
+static bool isDetected(const std::string &) {
+  static std::random_device rd;
+  static std::mt19937 generator(rd());
+  static std::uniform_real_distribution<double> randomProb(0.0L, 1.0L);
+  return randomProb(generator) > Error;
+}
+
+static bool isNotDetected(const std::string &VehicleId) {
+  return not isDetected(VehicleId);
+}
+
+static bool startsWith(const std::string &haystack, const std::string &needle) {
+  const auto needle_len = needle.length();
+  const auto haystack_len = haystack.length();
+  if (needle_len > haystack_len)
+    return false;
+  return std::memcmp((void *)(needle.data()),
+                     (void *)(haystack.data()),
+                     needle_len) == 0;
+}
+
+static bool endsWith(const std::string &haystack, const std::string &needle) {
+  const auto needle_len = needle.length();
+  const auto haystack_len = haystack.length();
+  if (needle_len > haystack_len)
+    return false;
+  const auto offset = haystack_len - needle_len;
+  return std::memcmp((void *)(needle.data()),
+                     (void *)(haystack.data() + offset),
+                     needle_len) == 0;
+}
 
 Define_Module(TraCIDemoRSU11p);
 
@@ -91,15 +126,17 @@ static const constexpr int YellowTime = 4;
 static const constexpr int TotalYellowTime = 2 * YellowTime;
 
 static double computeCapacity(const double VerGreenTime,
-                              const int NorthInputFlow,
-                              const int SouthInputFlow,
-                              const int WestInputFlow,
-                              const int EastInputFlow) {
+                              std::array<int, 4> &InputFlow) {
   // Saturation flow of access i. In this case all the accesses are equal.
   // The exact reason why the value 120 was choosed it's not clear to me,
   // but I guess that given that it's a constant it does not really matter
   // for this specific example.
   static const constexpr double s_i = 120.0;
+
+  const int NorthInputFlow = InputFlow[getDirection('N')];
+  const int SouthInputFlow = InputFlow[getDirection('S')];
+  const int EastInputFlow = InputFlow[getDirection('E')];
+  const int WestInputFlow = InputFlow[getDirection('W')];
 
   const double f_N = static_cast<double>(NorthInputFlow);
   const double f_S = static_cast<double>(SouthInputFlow);
@@ -121,17 +158,6 @@ static double computeCapacity(const double VerGreenTime,
   return std::min(std::min(ECapacity, WCapacity), std::min(NCapacity, SCapacity));
 }
 
-static bool endsWith(const std::string &haystack, const std::string &needle) {
-  const auto needle_len = needle.length();
-  const auto haystack_len = haystack.length();
-  if (needle_len > haystack_len)
-    return false;
-  const auto offset = haystack_len - needle_len;
-  return std::memcmp((void *)(needle.data()),
-                     (void *)(haystack.data() + offset),
-                     needle_len) == 0;
-}
-
 void TraCIDemoRSU11p::setOptimalProgram(const std::string &TLName) {
   TraCICommandInterface::Trafficlight TL = traci->trafficlight(TLName);
   /**
@@ -142,15 +168,8 @@ void TraCIDemoRSU11p::setOptimalProgram(const std::string &TLName) {
    * https://doi.org/10.3182/20140824-6-ZA-1003.01975
    */
   int TLId = endsWith(TLName, "_new") ? 1 : 0;
-  auto &CurrNorthInputFlow = NorthInputFlow[TLId];
-  auto &CurrSouthInputFlow = SouthInputFlow[TLId];
-  auto &CurrWestInputFlow = WestInputFlow[TLId];
-  auto &CurrEastInputFlow = EastInputFlow[TLId];
-  const double BalancedCapacity = computeCapacity(41,
-                                                  CurrNorthInputFlow,
-                                                  CurrSouthInputFlow,
-                                                  CurrWestInputFlow,
-                                                  CurrEastInputFlow);
+  RedundantCrossingData &RCD = Scenario.TrafficLights[TLId];
+  const double BalancedCapacity = computeCapacity(41, RCD.RealFlow);
   double MaxCapacity = 0.0;
   int MaxCapacityVerGreenSecs = 0;
 
@@ -158,17 +177,8 @@ void TraCIDemoRSU11p::setOptimalProgram(const std::string &TLName) {
   // phase of the intersection (for vertical direction)
   for (int VerGreenSecs = 4; VerGreenSecs < 79; ++VerGreenSecs) {
 
-    // In this basic crossing we only have 4 accesses. The index i used in
-    // the paper to represent accesses to the intersection should go from
-    // 0 to 4, but we can simplify and assume only two direction:
-    // horizontal and vertical.
-
     const double VerGreenTime = static_cast<double>(VerGreenSecs);
-    const double ProgramCapacity = computeCapacity(VerGreenTime,
-                                                  CurrNorthInputFlow,
-                                                  CurrSouthInputFlow,
-                                                  CurrWestInputFlow,
-                                                  CurrEastInputFlow);
+    const double ProgramCapacity = computeCapacity(VerGreenTime, RCD.RealFlow);
 
     // Store the id of the program with max capacity, along with the value of
     // the max capacity, used later for statistics
@@ -220,82 +230,66 @@ void TraCIDemoRSU11p::setOptimalProgram(const std::string &TLName) {
   else
     TL.setPhaseLeftDuration(0);
 
-  CurrSouthInputFlow = 0;
-  CurrNorthInputFlow = 0;
-  CurrWestInputFlow = 0;
-  CurrEastInputFlow = 0;
-
+  RCD.RealFlow = { 0 };
+  RCD.DetectedFlow = { { 0 } };
   return;
+}
+
+static void computeTrafficFlow(int TLId, int Dir,
+                               VehicleSet &Vehicles,
+                               int &InputFlow,
+                               TraCICommandInterface *traci,
+                               bool hasErrors = false) {
+  VehicleSet NewVehicles;
+  for (const auto &ID : traci->getLaneAreaDetectorIds()) {
+    assert(ID.length() > 5);
+    assert(startsWith(ID, "lad"));
+    // This is ad-hoc to tell the two traffic lights apart
+    // It depends on the names given to the traffic light objects in the
+    // configuration files and it may change in future.
+    char TLCharID = ID.at(3);
+    int LADTrafficLightID = charToInt(TLCharID);
+    if (LADTrafficLightID != TLId)
+      continue;
+    // This is ad-hoc to tell lanes apart.
+    // It depends on the names given to the lanes objects in the
+    // configuration files and it may change in future.
+    char DirChar = ID.at(5);
+    enum Direction D = getDirection(DirChar);
+    if (D != Dir)
+      continue;
+
+    auto LaneDetector = traci->laneAreaDetector(ID);
+    VehicleSet Vehicles = LaneDetector.getLastStepVehicleIDs();
+    if (hasErrors)
+      for (auto It = Vehicles.begin(); It != Vehicles.end(); ++It)
+        if (isNotDetected(*It))
+          Vehicles.erase(It);
+    NewVehicles.insert(Vehicles.begin(), Vehicles.end());
+  }
+
+  for (const auto &V : Vehicles)
+    if (NewVehicles.count(V) != 0)
+      InputFlow += 1;
+
+  Vehicles = std::move(NewVehicles);
 }
 
 void TraCIDemoRSU11p::computeTrafficFlows(TraCICommandInterface *traci) {
   // Count the number of vehicles in horizontal and vertical directions
   for (int TLId = 0; TLId < NumIntersections; ++TLId) {
-    auto &TLNorthInputFlow = NorthInputFlow[TLId];
-    auto &TLSouthInputFlow = SouthInputFlow[TLId];
-    auto &TLWestInputFlow = WestInputFlow[TLId];
-    auto &TLEastInputFlow = EastInputFlow[TLId];
-    auto &TLNorthVehicles = PrevNorthVehicles[TLId];
-    auto &TLSouthVehicles = PrevSouthVehicles[TLId];
-    auto &TLWestVehicles = PrevWestVehicles[TLId];
-    auto &TLEastVehicles = PrevEastVehicles[TLId];
-
-    std::set<std::string> CurrNorthVehicles;
-    std::set<std::string> CurrSouthVehicles;
-    std::set<std::string> CurrWestVehicles;
-    std::set<std::string> CurrEastVehicles;
-
-    for (const auto &ID : traci->getLaneAreaDetectorIds()) {
-      // This is ad-hoc to tell the two traffic lights apart
-      if (TLId != endsWith(ID, "_new"))
-        continue;
-      auto LaneDetector = traci->laneAreaDetector(ID);
-      std::set<std::string> Vehicles = LaneDetector.getLastStepVehicleIDs();
-
-      // This is ad-hoc to tell horizontal and vertical lanes apart.
-      // It depends on the names given to the lanes objects in the
-      // configuration files and it may change in future.
-      assert(ID.length() > 4);
-      char c = ID.at(4);
-      switch (c) {
-        case 'E':
-          CurrEastVehicles.insert(Vehicles.begin(), Vehicles.end());
-          break;
-        case 'W':
-          CurrWestVehicles.insert(Vehicles.begin(), Vehicles.end());
-          break;
-        case 'S':
-          CurrSouthVehicles.insert(Vehicles.begin(), Vehicles.end());
-          break;
-        case 'N':
-          CurrNorthVehicles.insert(Vehicles.begin(), Vehicles.end());
-          break;
-        default:
-          abort();
-          break;
+    RedundantCrossingData &RCD = Scenario.TrafficLights[TLId];
+    for (int Dir = 0; Dir < 4; ++Dir) {
+      // RedundantVehicleSet &DetectedVehicles = RCD.DetectedVehicles[Dir];
+      VehicleSet &RealVehicles = RCD.RealVehicles[Dir];
+      int &RealInputFlow = RCD.RealFlow[Dir];
+      computeTrafficFlow(TLId, Dir, RealVehicles, RealInputFlow, traci);
+      for (int RedundantId = 0; RedundantId < Redundancy; ++RedundantId) {
+        VehicleSet &DetectedVehicles = RCD.DetectedVehicles[RedundantId][Dir];
+        int &DetectedInputFlow = RCD.DetectedFlow[RedundantId][Dir];
+        computeTrafficFlow(TLId, Dir, DetectedVehicles, DetectedInputFlow, traci, true);
       }
     }
-
-    for (const auto &V : TLNorthVehicles)
-      if (CurrNorthVehicles.count(V) != 0)
-        TLNorthInputFlow += 1;
-
-    for (const auto &V : TLSouthVehicles)
-      if (CurrSouthVehicles.count(V) != 0)
-        TLSouthInputFlow += 1;
-
-    for (const auto &V : TLEastVehicles)
-      if (CurrEastVehicles.count(V) != 0)
-        TLEastInputFlow += 1;
-
-    for (const auto &V : TLWestVehicles)
-      if (CurrWestVehicles.count(V) != 0)
-        TLWestInputFlow += 1;
-
-    TLNorthVehicles = std::move(CurrNorthVehicles);
-    TLSouthVehicles = std::move(CurrSouthVehicles);
-    TLEastVehicles = std::move(CurrEastVehicles);
-    TLWestVehicles = std::move(CurrWestVehicles);
   }
 }
 
@@ -357,7 +351,7 @@ void TraCIDemoRSU11p::handleSelfMsg(cMessage *msg) {
     setOptimalProgram("Crossing");
     setOptimalProgram("Crossing_new");
     cancelEvent(checkTrafficEvt);
-    scheduleAt(simTime() + 5, checkTrafficEvt);
+    scheduleAt(simTime() + 4, checkTrafficEvt);
   } break;
 
   default:
@@ -378,18 +372,7 @@ static inline void cleanupMsg(TraCIDemoRSU11p *RSU, cMessage **MsgPtr) {
 }
 
 void TraCIDemoRSU11p::finish() {
-
-  for (int TLID = 0; TLID < NumIntersections; ++TLID) {
-    PrevNorthVehicles[TLID] = {};
-    PrevSouthVehicles[TLID] = {};
-    PrevEastVehicles[TLID] = {};
-    PrevWestVehicles[TLID] = {};
-    NorthInputFlow[TLID] = 0;
-    SouthInputFlow[TLID] = 0;
-    EastInputFlow[TLID] = 0;
-    WestInputFlow[TLID] = 0;
-  }
-
+  Scenario = SafeCOPScenario();
   cleanupMsg(this, &sendTimerEvt);
   cleanupMsg(this, &checkTrafficEvt);
   cleanupMsg(this, &initialEvt);
