@@ -27,13 +27,14 @@
 #include "veins/modules/application/ieee80211p/BaseWaveApplLayer.h"
 
 static const constexpr int NumIntersections = 2;
-static const constexpr int Redundancy = 2;
+static const constexpr int Redundancy = 9;
 
 enum Direction {
   North = 0,
   East = 1,
   South = 2,
   West = 3,
+  NumDirections = 4,
 };
 
 inline int charToInt(const char c) {
@@ -57,6 +58,23 @@ inline Direction getDirection(const char c) {
   }
 }
 
+inline std::string getDirName(Direction D) {
+  switch (D) {
+  case North:
+    return "North";
+  case East:
+    return "East";
+  case South:
+    return "South";
+  case West:
+    return "West";
+  case NumDirections:
+    return "NumDirections";
+  default:
+    abort();
+  }
+}
+
 using VehicleSet = std::set<std::string>;
 using RedundantVehicleSet = std::array<VehicleSet, Redundancy>;
 using RedundantInputFlow = std::array<int, Redundancy>;
@@ -69,10 +87,10 @@ struct RedundantCrossingData {
   RedundantCrossingData &operator=(const RedundantCrossingData &) = default;
   RedundantCrossingData &operator=(RedundantCrossingData &&) = default;
 
-  std::array<int, 4> RealFlow;
-  std::array<RedundantInputFlow, 4> DetectedFlow;
-  std::array<VehicleSet, 4> RealVehicles;
-  std::array<RedundantVehicleSet, 4> DetectedVehicles;
+  std::array<int, NumDirections> RealFlow;
+  std::array<RedundantInputFlow, NumDirections> DetectedFlow;
+  std::array<VehicleSet, NumDirections> RealVehicles;
+  std::array<RedundantVehicleSet, NumDirections> DetectedVehicles;
 
 };
 

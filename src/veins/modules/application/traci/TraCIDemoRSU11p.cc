@@ -29,25 +29,35 @@
 #include "veins/modules/mobility/traci/TraCIMobility.h"
 #include "veins/modules/mobility/traci/TraCIScenarioManager.h"
 
-#define MYDEBUG EV
-
 #define RECURRING_TIMER_EVT 2
 #define CHECK_TRAFFIC_EVT 3
 #define INITIAL_EVT 4
 
 #define STATS_FILENAME "perfMetrics.txt"
 
-static const constexpr double Error = 0.05;
+// Use the names coming from aitek report
+// Low scene complexity
+static const constexpr double DetectionRate = 0.94;
+static const constexpr double FalseAlertRate = 0.04;
+// High scene complexity
+// static const constexpr double DetectionRate = 0.81;
+// static const constexpr double FalseAlertRate = 0.09;
+// Extreme case for tests (not realistic)
+// static const constexpr double DetectionRate = 0.5;
+// static const constexpr double FalseAlertRate = 0.3;
 
-static bool isDetected(const std::string &) {
-  static std::random_device rd;
-  static std::mt19937 generator(rd());
-  static std::uniform_real_distribution<double> randomProb(0.0L, 1.0L);
-  return randomProb(generator) > Error;
+// static std::random_device rd;
+static std::mt19937_64 DetectionGenerator(0);
+static std::mt19937_64 FalseAlertGenerator(0);
+static std::uniform_real_distribution<double> DetectionProb(0.0L, 1.0L);
+static std::uniform_real_distribution<double> FalseAlertProb(0.0L, 1.0L);
+
+static bool isDetected() {
+  return DetectionProb(DetectionGenerator) < DetectionRate;
 }
 
-static bool isNotDetected(const std::string &VehicleId) {
-  return not isDetected(VehicleId);
+static bool isFalseAlert() {
+  return FalseAlertProb(FalseAlertGenerator) < FalseAlertRate;
 }
 
 static bool startsWith(const std::string &haystack, const std::string &needle) {
@@ -71,32 +81,15 @@ static bool endsWith(const std::string &haystack, const std::string &needle) {
                      needle_len) == 0;
 }
 
-Define_Module(TraCIDemoRSU11p);
-
-void TraCIDemoRSU11p::initialize(int stage) {
-  BaseWaveApplLayer::initialize(stage);
-
+static inline void setupStatFile(const std::string &TLName) {
   std::ofstream f_perf;
-  f_perf.open(STATS_FILENAME);
+  f_perf.open(TLName + STATS_FILENAME);
   if (f_perf.is_open()) {
     f_perf << "Performance metric for traffic light optimal control\n\n"
               "simulation time\tnot optimized\toptimized\ttl program"
            << std::endl;
   }
   f_perf.close();
-
-  if (stage + 1 < numInitStages())
-    return;
-
-  // Initialize the pointer to the scenario manager
-  manager = Veins::TraCIScenarioManagerAccess().get();
-  assert(manager != nullptr);
-
-  checkTrafficEvt = new cMessage("OptimalTraffic Event", CHECK_TRAFFIC_EVT);
-  scheduleAt(simTime() + 90, checkTrafficEvt);
-
-  initialEvt = new cMessage("RSU Startup Event", INITIAL_EVT);
-  scheduleAt(simTime(), initialEvt);
 }
 
 static inline void dumpCapacityMetric(const std::string &TLName,
@@ -116,6 +109,26 @@ static inline void dumpCapacityMetric(const std::string &TLName,
   f_perf.close();
 }
 
+Define_Module(TraCIDemoRSU11p);
+
+void TraCIDemoRSU11p::initialize(int stage) {
+  BaseWaveApplLayer::initialize(stage);
+
+  if (stage + 1 < numInitStages())
+    return;
+
+  // Initialize the pointer to the scenario manager
+  manager = Veins::TraCIScenarioManagerAccess().get();
+  assert(manager != nullptr);
+
+  checkTrafficEvt = new cMessage("OptimalTraffic Event", CHECK_TRAFFIC_EVT);
+  // scheduleAt(simTime() + 90, checkTrafficEvt);
+  scheduleAt(simTime() + 4, checkTrafficEvt);
+
+  initialEvt = new cMessage("RSU Startup Event", INITIAL_EVT);
+  scheduleAt(simTime(), initialEvt);
+}
+
 // Traffic light cycle length
 static const constexpr int t_C = 90;
 
@@ -126,17 +139,17 @@ static const constexpr int YellowTime = 4;
 static const constexpr int TotalYellowTime = 2 * YellowTime;
 
 static double computeCapacity(const double VerGreenTime,
-                              std::array<int, 4> &InputFlow) {
+                              const std::array<int, NumDirections> &InputFlow) {
   // Saturation flow of access i. In this case all the accesses are equal.
   // The exact reason why the value 120 was choosed it's not clear to me,
   // but I guess that given that it's a constant it does not really matter
   // for this specific example.
-  static const constexpr double s_i = 120.0;
+  static const constexpr double s_i = 120.0L;
 
   const int NorthInputFlow = InputFlow[getDirection('N')];
   const int SouthInputFlow = InputFlow[getDirection('S')];
-  const int EastInputFlow = InputFlow[getDirection('E')];
-  const int WestInputFlow = InputFlow[getDirection('W')];
+  const int EastInputFlow  = InputFlow[getDirection('E')];
+  const int WestInputFlow  = InputFlow[getDirection('W')];
 
   const double f_N = static_cast<double>(NorthInputFlow);
   const double f_S = static_cast<double>(SouthInputFlow);
@@ -158,6 +171,33 @@ static double computeCapacity(const double VerGreenTime,
   return std::min(std::min(ECapacity, WCapacity), std::min(NCapacity, SCapacity));
 }
 
+struct TLCapacity {
+  double Capacity;
+  int VerticalGreenSecs;
+};
+
+static TLCapacity getMaxCapacity(const std::array<int, NumDirections> &InputFlow) {
+  double MaxCapacity = 0.0;
+  int MaxCapacityVerGreenSecs = 0;
+  // Maximization loop on p_k, where p_k is the duration of the next green
+  // phase of the intersection (for vertical direction)
+  for (int VerGreenSecs = 4; VerGreenSecs < 79; ++VerGreenSecs) {
+
+    const double VerGreenTime = static_cast<double>(VerGreenSecs);
+    const double ProgramCapacity = computeCapacity(VerGreenTime, InputFlow);
+
+    // Store the id of the program with max capacity, along with the value of
+    // the max capacity, used later for statistics
+    if (ProgramCapacity > MaxCapacity) {
+      MaxCapacity = ProgramCapacity;
+      MaxCapacityVerGreenSecs = VerGreenSecs;
+    }
+  }
+  return { MaxCapacity, MaxCapacityVerGreenSecs };
+}
+
+static constexpr const bool ErrorModeling = true;
+
 void TraCIDemoRSU11p::setOptimalProgram(const std::string &TLName) {
   TraCICommandInterface::Trafficlight TL = traci->trafficlight(TLName);
   /**
@@ -169,66 +209,79 @@ void TraCIDemoRSU11p::setOptimalProgram(const std::string &TLName) {
    */
   int TLId = endsWith(TLName, "_new") ? 1 : 0;
   RedundantCrossingData &RCD = Scenario.TrafficLights[TLId];
-  const double BalancedCapacity = computeCapacity(41, RCD.RealFlow);
-  double MaxCapacity = 0.0;
-  int MaxCapacityVerGreenSecs = 0;
 
-  // Maximization loop on p_k, where p_k is the duration of the next green
-  // phase of the intersection (for vertical direction)
-  for (int VerGreenSecs = 4; VerGreenSecs < 79; ++VerGreenSecs) {
+  double BalancedCapacity = computeCapacity(41, RCD.RealFlow);
+  TLCapacity MaxCapacity = getMaxCapacity(RCD.RealFlow);
 
-    const double VerGreenTime = static_cast<double>(VerGreenSecs);
-    const double ProgramCapacity = computeCapacity(VerGreenTime, RCD.RealFlow);
+  std::string NewProgram = "VG" + std::to_string(MaxCapacity.VerticalGreenSecs) + "Secs";
+  dumpCapacityMetric(TLName, simTime(), BalancedCapacity, MaxCapacity.Capacity, "Real" + NewProgram);
 
-    // Store the id of the program with max capacity, along with the value of
-    // the max capacity, used later for statistics
-    if (ProgramCapacity > MaxCapacity) {
-      MaxCapacity = ProgramCapacity;
-      MaxCapacityVerGreenSecs = VerGreenSecs;
+  // Assume that x is the real number of vehicles, and that we know the failure
+  // rates of the detectors (DetectionRate, FalseAlertRate).
+  // The number of detected vechicles from each detector R will be:
+  //   x_R = x (DetectionRate + FalseAlertRate)
+  // Hence, knowing a single x_R, our estimate for x is:
+  //   x = x_R / (DetectionRate + FalseAlertRate)
+  // As a consequence, knowing all the x_R for R in [0, Redundancy), we
+  // estimate x as follows:
+  //   x = mean(x_R) / (DetectionRate + FalseAlertRate)
+  if (ErrorModeling) {
+    std::array<int, NumDirections> DetectedFlow = { 0, 0, 0, 0};
+    for (int DirectionId = 0; DirectionId < NumDirections; ++DirectionId) {
+      auto &Detected = RCD.DetectedFlow[DirectionId];
+      // CumulatedFlow = sum(x_R) over all the R
+      int CumulatedFlow = std::accumulate(Detected.begin(), Detected.end(), 0);
+      // Flow == mean(x_R) over all the R (with rounding)
+      double Flow = (double) CumulatedFlow / (double) Redundancy;
+      // Finally, we divide by (DetectionRate + FalseAlertRate)
+      Flow = Flow / (DetectionRate + FalseAlertRate);
+      DetectedFlow[DirectionId] = std::lround(std::ceil(Flow));
     }
+    BalancedCapacity = computeCapacity(41, DetectedFlow);
+    MaxCapacity = getMaxCapacity(DetectedFlow);
+
+    NewProgram = "VG" + std::to_string(MaxCapacity.VerticalGreenSecs) + "Secs";
+    dumpCapacityMetric(TLName, simTime(), BalancedCapacity, MaxCapacity.Capacity, "Detected" + NewProgram);
   }
-
-  std::string NewProgram = "VerticalGreen"
-                           + std::to_string(MaxCapacityVerGreenSecs) + "Secs";
-
-  dumpCapacityMetric(TLName, simTime(), BalancedCapacity, MaxCapacity, NewProgram);
 
   const std::string &CurrProgram = TL.getCurrentProgram();
   if (CurrProgram == NewProgram)
     return;
 
-  int NewVerGreenSecs = MaxCapacityVerGreenSecs;
-  int NewHorGreenSecs = t_C - TotalYellowTime - NewVerGreenSecs;
-  using Phase = TraCICommandInterface::Trafficlight::Phase;
-  std::vector<Phase> Phases = {};
+  if (CurrProgram != NewProgram) {
+    int NewVerGreenSecs = MaxCapacity.VerticalGreenSecs;
+    int NewHorGreenSecs = t_C - TotalYellowTime - NewVerGreenSecs;
+    using Phase = TraCICommandInterface::Trafficlight::Phase;
+    std::vector<Phase> Phases = {};
 
-  Phases.push_back({ NewVerGreenSecs, "ggrrggrr" });
-  Phases.push_back({ YellowTime, "yyrryyrr" });
-  Phases.push_back({ NewHorGreenSecs, "rrggrrgg" });
-  Phases.push_back({ YellowTime, "rryyrryy" });
+    Phases.push_back({ NewVerGreenSecs, "ggrrggrr" });
+    Phases.push_back({ YellowTime, "yyrryyrr" });
+    Phases.push_back({ NewHorGreenSecs, "rrggrrgg" });
+    Phases.push_back({ YellowTime, "rryyrryy" });
 
-  assert(Phases.size() == 4);
+    assert(Phases.size() == 4);
 
-  int PhaseID = TL.getPhaseIndex();
-  assert(PhaseID < 4 and PhaseID > -1);
+    int PhaseID = TL.getPhaseIndex();
+    assert(PhaseID < 4 and PhaseID > -1);
 
-  int CurrPhaseDuration = TL.getCurrPhaseDuration();
-  int NextSwitchTime = TL.getNextSwitchSecs();
-  int SumoSimTime = traci->getCurrentTimeSecs();
-  int CurrPhaseLeftDuration = NextSwitchTime - SumoSimTime;
-  int CurrPhaseConsumedDuration = CurrPhaseDuration - CurrPhaseLeftDuration;
-  int NewPhaseDuration = Phases.at(PhaseID).Duration;
-  int NewPhaseLeftDuration = NewPhaseDuration - CurrPhaseConsumedDuration;
+    int CurrPhaseDuration = TL.getCurrPhaseDuration();
+    int NextSwitchTime = TL.getNextSwitchSecs();
+    int SumoSimTime = traci->getCurrentTimeSecs();
+    int CurrPhaseLeftDuration = NextSwitchTime - SumoSimTime;
+    int CurrPhaseConsumedDuration = CurrPhaseDuration - CurrPhaseLeftDuration;
+    int NewPhaseDuration = Phases.at(PhaseID).Duration;
+    int NewPhaseLeftDuration = NewPhaseDuration - CurrPhaseConsumedDuration;
 
-  // Set the tl program according to the maximization of the capacity
-  TL.addCompleteProgram(NewProgram, Phases, 0);
-  TL.setProgram(NewProgram);
-  TL.setPhaseIndex(PhaseID);
+    // Set the tl program according to the maximization of the capacity
+    TL.addCompleteProgram(NewProgram, Phases, 0);
+    TL.setProgram(NewProgram);
+    TL.setPhaseIndex(PhaseID);
 
-  if (NewPhaseLeftDuration > 0)
-    TL.setPhaseLeftDuration(NewPhaseLeftDuration);
-  else
-    TL.setPhaseLeftDuration(0);
+    if (NewPhaseLeftDuration > 0)
+      TL.setPhaseLeftDuration(NewPhaseLeftDuration);
+    else
+      TL.setPhaseLeftDuration(0);
+  }
 
   RCD.RealFlow = { 0 };
   RCD.DetectedFlow = { { 0 } };
@@ -261,16 +314,26 @@ static void computeTrafficFlow(int TLId, int Dir,
 
     auto LaneDetector = traci->laneAreaDetector(ID);
     VehicleSet Vehicles = LaneDetector.getLastStepVehicleIDs();
-    if (hasErrors)
-      for (auto It = Vehicles.begin(); It != Vehicles.end(); ++It)
-        if (isNotDetected(*It))
-          Vehicles.erase(It);
     NewVehicles.insert(Vehicles.begin(), Vehicles.end());
   }
 
+  size_t NumNewVehicles = 0;
   for (const auto &V : Vehicles)
     if (NewVehicles.count(V) != 0)
-      InputFlow += 1;
+      NumNewVehicles += 1;
+
+  if (hasErrors) {
+    size_t NumDetectedVehicles = 0;
+    for (size_t N = 0; N < NumNewVehicles; ++N)
+      if (isDetected())
+        NumDetectedVehicles += 1;
+    for (size_t N = 0; N < NumNewVehicles; ++N)
+      if (isFalseAlert())
+        NumDetectedVehicles += 1;
+    InputFlow += NumDetectedVehicles;
+  } else {
+    InputFlow += NumNewVehicles;
+  }
 
   Vehicles = std::move(NewVehicles);
 }
@@ -279,14 +342,15 @@ void TraCIDemoRSU11p::computeTrafficFlows(TraCICommandInterface *traci) {
   // Count the number of vehicles in horizontal and vertical directions
   for (int TLId = 0; TLId < NumIntersections; ++TLId) {
     RedundantCrossingData &RCD = Scenario.TrafficLights[TLId];
-    for (int Dir = 0; Dir < 4; ++Dir) {
-      // RedundantVehicleSet &DetectedVehicles = RCD.DetectedVehicles[Dir];
+    for (int Dir = 0; Dir < NumDirections; ++Dir) {
       VehicleSet &RealVehicles = RCD.RealVehicles[Dir];
       int &RealInputFlow = RCD.RealFlow[Dir];
       computeTrafficFlow(TLId, Dir, RealVehicles, RealInputFlow, traci);
+      if (not ErrorModeling)
+        continue;
       for (int RedundantId = 0; RedundantId < Redundancy; ++RedundantId) {
-        VehicleSet &DetectedVehicles = RCD.DetectedVehicles[RedundantId][Dir];
-        int &DetectedInputFlow = RCD.DetectedFlow[RedundantId][Dir];
+        VehicleSet &DetectedVehicles = RCD.DetectedVehicles[Dir][RedundantId];
+        int &DetectedInputFlow = RCD.DetectedFlow[Dir][RedundantId];
         computeTrafficFlow(TLId, Dir, DetectedVehicles, DetectedInputFlow, traci, true);
       }
     }
@@ -326,6 +390,8 @@ void TraCIDemoRSU11p::handleSelfMsg(cMessage *msg) {
     auto NewTL = traci->trafficlight("Crossing_new");
     setBalanced(OldTL);
     setBalanced(NewTL);
+    setupStatFile("Crossing");
+    setupStatFile("Crossing_new");
 
     // Cleanup the event
     cancelEvent(initialEvt);
